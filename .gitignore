@@ -1,0 +1,22 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+
+# Segredos (chaves da ElevenLabs e do Supabase)
+.env
+.env.*
+!.env.example
+
+# Vercel / Supabase locais
+.vercel
+supabase/.temp
+supabase/.branches
+
+# Materiais de referência (fora do repositório público).
+# "04. Testes de voz" contém gravações de voz — dado biométrico (LGPD).
+01. Identidade Visual/
+02. Funcionalidades/
+03. Telas/
+04. Testes de voz/

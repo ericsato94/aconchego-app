@@ -1,0 +1,104 @@
+/*
+ * Design tokens — Aconchego
+ * Fonte: Branding Book (paleta, tipografia, componentes) + mockup "5 telas".
+ *
+ * Breakpoints (usar sempre estes valores nas media queries):
+ *   sm  ≥ 640px   md  ≥ 768px   lg  ≥ 1024px   xl  ≥ 1280px   2xl ≥ 1536px
+ *   Espelhados em src/config/breakpoints.ts para uso em JS.
+ */
+:root {
+  /* Paleta da marca */
+  --c-sun: #ffd54f;
+  --c-orange: #ff8a3d;
+  --c-pink: #ff5e92;
+  --c-purple: #8b5cf6;
+  --c-sky: #4fc3f7;
+  --c-green: #66bb6a;
+  --c-brown: #5d4037;
+  --c-cream: #fff9f3;
+
+  /* Cores de interface (mockup) */
+  --c-primary: #2f9bef;
+  --c-primary-strong: #1b84de;
+  --c-primary-soft: #e4f3fe;
+  --c-primary-softer: #f1f8ff;
+  --c-sky-bg: #dcf0fc;
+  --c-navy: #1b2a5c;
+  --c-maroon: #5a1a12;
+  --c-text: #33416b;
+  --c-text-muted: #7a86a6;
+  --c-icon-muted: #a3aec9;
+  --c-border: #e3ebf5;
+  --c-border-strong: #c9daf0;
+  --c-surface: #ffffff;
+  --c-surface-tint: #f6faff;
+  --c-bg: #fbf7f0;
+  --c-plan: #6c55ee;
+  --c-plan-soft: #eeeaff;
+  --c-plan-border: #cfc6ff;
+  --c-danger: #ef4f7c;
+  --c-danger-soft: #fff0f4;
+  --c-success: #3fa046;
+  --c-warning-soft: #fff3e2;
+  --c-night: #1f3a78;
+  --c-night-deep: #0d1633;
+  --c-night-mid: #172656;
+
+  /* Tipografia */
+  --font-display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+  --fs-xl: clamp(1.4rem, 1.2rem + 0.8vw, 1.85rem);
+  --fs-2xl: clamp(1.75rem, 1.4rem + 1.4vw, 2.6rem);
+  --fs-3xl: clamp(2rem, 1.5rem + 2.2vw, 3.4rem);
+
+  /* Espaçamento */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --section-gap: clamp(24px, 3vw, 36px);
+
+  /* Raios */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* Sombras */
+  --sh-sm: 0 1px 2px rgb(27 42 92 / 0.05), 0 2px 8px rgb(47 155 239 / 0.06);
+  --sh-md: 0 4px 18px rgb(47 155 239 / 0.1), 0 1px 3px rgb(27 42 92 / 0.05);
+  --sh-lg: 0 18px 50px rgb(27 42 92 / 0.18);
+  --sh-btn: 0 6px 16px rgb(47 155 239 / 0.3);
+
+  /* Layout */
+  --content-max: 1280px;
+  --text-max: 68ch;
+  --sidebar-w: 264px;
+  --bottom-nav-h: 68px;
+  --mini-player-h: 64px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Camadas */
+  --z-nav: 40;
+  --z-mini-player: 45;
+  --z-modal: 80;
+  --z-toast: 90;
+  --z-sleep: 100;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --focus-ring: 0 0 0 3px rgb(47 155 239 / 0.45);
+}

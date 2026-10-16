@@ -1,0 +1,147 @@
+.info-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  margin-left: -10px;
+}
+
+.info-card {
+  padding: var(--sp-6);
+}
+
+@media (min-width: 768px) {
+  .info-card {
+    padding: var(--sp-8) var(--sp-10);
+  }
+}
+
+.plans {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-6);
+  border-radius: var(--r-xl);
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  box-shadow: var(--sh-sm);
+}
+
+.plan--highlight {
+  border-color: var(--c-plan-border);
+  background: linear-gradient(170deg, #f6f3ff 0%, #fff 60%);
+}
+
+.plan.is-current {
+  border-color: var(--c-primary);
+}
+
+.plan__ribbon {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  background: var(--c-plan);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.plan__name {
+  font-size: var(--fs-xl);
+}
+
+.plan__price {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan__price strong {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  color: var(--c-navy);
+  line-height: 1.1;
+}
+
+.plan__price span {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.plan__features {
+  list-style: none;
+  margin: 0 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+}
+
+.plan__features li {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.plan__features svg {
+  color: var(--c-success);
+  flex-shrink: 0;
+}
+
+.plans__note {
+  font-size: var(--fs-sm);
+  max-width: var(--text-max);
+}
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 860px;
+}
+
+.faq__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--c-navy);
+  border-radius: var(--r-lg);
+}
+
+.faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq__item summary svg {
+  flex-shrink: 0;
+  color: var(--c-primary);
+  transition: transform 0.2s var(--ease);
+}
+
+.faq__item[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.faq__item p {
+  padding: 0 var(--sp-5) var(--sp-5);
+  max-width: var(--text-max);
+  color: var(--c-text);
+}

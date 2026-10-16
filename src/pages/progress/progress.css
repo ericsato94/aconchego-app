@@ -1,0 +1,254 @@
+.progress-page__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.progress-page__cal {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--c-primary-soft);
+}
+
+.progress-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+
+.progress-child {
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.progress-child__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-2);
+  border-radius: var(--r-lg);
+  text-align: left;
+  color: var(--c-primary);
+  transition: background-color 0.15s;
+}
+
+.progress-child__row:hover {
+  background: var(--c-surface-tint);
+}
+
+.progress-child__name {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-child__name strong {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  color: var(--c-navy);
+  line-height: 1.15;
+}
+
+.progress-child__name span {
+  color: var(--c-text-muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin: 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--sp-4) var(--sp-2);
+  border-radius: var(--r-lg);
+  background: var(--c-surface-tint);
+  text-align: center;
+}
+
+.stat > svg {
+  color: var(--c-primary);
+  margin-bottom: 4px;
+}
+
+.stat--sun > svg {
+  color: #f7b90f;
+}
+
+.stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--c-navy);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.stat dt {
+  order: 2;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* Play icon ganha círculo como no mockup */
+.stat:first-child > svg {
+  padding: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.voice-evo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: linear-gradient(120deg, #dff0fd 0%, #cfe8fb 100%);
+  color: inherit;
+  transition: transform 0.15s var(--ease);
+}
+
+.voice-evo:hover {
+  transform: translateY(-2px);
+}
+
+.voice-evo__icon {
+  color: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.voice-evo__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.voice-evo__text strong {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--c-navy);
+}
+
+.voice-evo__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.voice-evo__bars span {
+  width: 10px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, #4fb2f7, var(--c-primary-strong));
+}
+
+.cheer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
+  border-radius: var(--r-pill);
+  background: #fffaf0;
+  border: 1px solid #f6ead3;
+  color: var(--c-primary-strong);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.cheer p {
+  flex: 1;
+}
+
+.cheer__heart {
+  color: var(--c-pink);
+  flex-shrink: 0;
+}
+
+.week {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-3) 0;
+  border-radius: var(--r-md);
+  background: var(--c-surface-tint);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  text-transform: capitalize;
+}
+
+.week__day strong {
+  font-size: var(--fs-md);
+  color: var(--c-navy);
+}
+
+.week__day.is-active {
+  background: #fff6d8;
+}
+
+.week__day.is-active svg {
+  color: #f7b90f;
+}
+
+.week__day.is-today {
+  box-shadow: inset 0 0 0 2px var(--c-primary);
+}
+
+.week__summary {
+  margin-top: var(--sp-4);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .progress-child {
+    padding: var(--sp-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .progress-page__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-6) var(--sp-8);
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

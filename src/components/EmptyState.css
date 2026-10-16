@@ -1,0 +1,28 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-3);
+  padding: var(--sp-10) var(--sp-6);
+}
+
+.empty__icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff6d8;
+  color: #f7b90f;
+}
+
+.empty__title {
+  font-size: var(--fs-lg);
+}
+
+.empty__text {
+  max-width: 40ch;
+  color: var(--c-text-muted);
+  margin-bottom: var(--sp-2);
+}
