@@ -5,7 +5,7 @@ import { supabase } from './supabase'
 /** Contas reais com o Supabase Auth (e-mail e senha). */
 export const DEMO_USER = {
   name: 'Thiago Lucas',
-  email: 'thiago@email.com',
+  email: 'thiago@example.com',
   password: 'aconchego-demo',
 } as const
 
