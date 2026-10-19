@@ -7,7 +7,7 @@ import { firstName } from '../../lib/format'
 import { QUIZ, fill } from '../../quiz/config'
 import { buildResult } from '../../quiz/result'
 import { quizState } from '../../quiz/state'
-import { track } from '../../quiz/track'
+import { track, trafficSource } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
 
 /** Página de vendas, personalizada pelas respostas do quiz. */
@@ -33,10 +33,13 @@ export default function SalesPage() {
   const checkout = () => {
     void track({ sessionId: state.sessionId, type: 'checkout_started', plan: plan.id })
     if (plan.checkoutUrl) {
-      // A sessão do quiz vai junto para a compra ser ligada ao funil (webhook /api/quiz/purchase).
+      // A sessão do quiz vai em "sck" (a Cakto devolve no aviso de compra) e a origem do anúncio
+      // segue junto nos parâmetros UTM, para aparecer também nos relatórios da plataforma.
       const url = new URL(plan.checkoutUrl)
-      url.searchParams.set('src', 'quiz')
-      url.searchParams.set('sid', state.sessionId)
+      url.searchParams.set('sck', state.sessionId)
+      for (const [key, value] of Object.entries(trafficSource())) {
+        if (value && key.startsWith('utm_')) url.searchParams.set(key, value)
+      }
       window.location.href = url.toString()
     } else {
       navigate(`/cadastro?origem=quiz&plano=${plan.id}`)

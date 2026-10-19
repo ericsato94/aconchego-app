@@ -39,7 +39,8 @@ export function captureSource() {
   }
 }
 
-function readSource(): Record<string, string | null> {
+/** Origem do tráfego capturada na entrada do quiz (utm_*, site de origem, aparelho). */
+export function trafficSource(): Record<string, string | null> {
   try {
     return JSON.parse(sessionStorage.getItem(SOURCE_KEY) ?? '{}') as Record<string, string | null>
   } catch {
@@ -48,7 +49,7 @@ function readSource(): Record<string, string | null> {
 }
 
 export function track(payload: EventPayload) {
-  const body = JSON.stringify(payload.type === 'quiz_started' ? { ...payload, source: readSource() } : payload)
+  const body = JSON.stringify(payload.type === 'quiz_started' ? { ...payload, source: trafficSource() } : payload)
   // keepalive: o evento chega mesmo se a página for trocada logo em seguida (ex.: checkout).
   return fetch('/api/quiz/event', {
     method: 'POST',

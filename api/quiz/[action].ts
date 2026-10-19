@@ -130,20 +130,23 @@ async function sessionFromLead(email?: string | null, phone?: string | null) {
   return null
 }
 
-const planFromOffer = (name: string) => (/anual/i.test(name) ? 'anual' : /mensal/i.test(name) ? 'mensal' : null)
+const planFromName = (name: string) => (/anual/i.test(name) ? 'anual' : /mensal/i.test(name) ? 'mensal' : null)
 
 /**
  * Compra confirmada pela plataforma de pagamento. Aceita:
- * - Cakto: { secret, event: "purchase_approved", data: { id, customer: { email, phone }, offer: { name }, amount } }
+ * - Cakto: { secret, event: "purchase_approved", data: { id, sck, customer: { email, phone }, offer, product, amount } }
  * - Genérico: cabeçalho x-quiz-secret + { sessionId | email, plan, value }
  * Avisos válidos sempre recebem 2xx (a Cakto espera até 8 s e reenvia quando não há resposta).
  */
 async function recordPurchase(request: Request) {
-  const secret = process.env.QUIZ_WEBHOOK_SECRET
-  if (!secret) throw new HttpError(503, 'Webhook de compras não configurado.')
+  // Uma ou mais chaves separadas por vírgula (ex.: a do .env e a gerada pela Cakto).
+  const secrets = (process.env.QUIZ_WEBHOOK_SECRET ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  if (!secrets.length) throw new HttpError(503, 'Webhook de compras não configurado.')
   const b = await body(request)
   const given = String(b.secret ?? request.headers.get('x-quiz-secret') ?? '')
-  if (!sameSecret(given, secret)) throw new HttpError(401, 'Não autorizado.')
+  // Compara com todas (sem parar na primeira) para não vazar informação pelo tempo de resposta.
+  const valid = secrets.map((s) => sameSecret(given, s)).includes(true)
+  if (!valid) throw new HttpError(401, 'Não autorizado.')
 
   const isCakto = typeof b.event === 'string'
   if (isCakto && b.event !== 'purchase_approved') return json({ ok: true, ignored: b.event })
@@ -151,13 +154,16 @@ async function recordPurchase(request: Request) {
   const d = ((isCakto ? b.data : b) ?? {}) as Record<string, unknown>
   const customer = (d.customer ?? {}) as Record<string, unknown>
   const offer = (d.offer ?? {}) as Record<string, unknown>
+  const product = (d.product ?? {}) as Record<string, unknown>
   const email = text(customer.email ?? d.email, 160)?.toLowerCase() ?? null
   const externalId = text(d.id, 80)
-  const plan = text(d.plan, 40) ?? planFromOffer(String(offer.name ?? ''))
+  const plan = text(d.plan, 40) ?? planFromName(`${String(offer.name ?? '')} ${String(product.name ?? '')}`)
   const value = Number(d.amount ?? d.value)
 
-  let sessionId = UUID.test(String(d.sessionId ?? '')) ? String(d.sessionId) : null
-  sessionId ??= await sessionFromLead(email, text(customer.phone, 30))
+  // 1º: o código da sessão que o quiz põe no link de checkout (a Cakto devolve em "sck").
+  // 2º: o e-mail ou WhatsApp do cadastro do quiz.
+  const fromLink = [d.sessionId, d.sck].map(String).find((v) => UUID.test(v)) ?? null
+  const sessionId = fromLink ?? (await sessionFromLead(email, text(customer.phone, 30)))
   if (!sessionId) return json({ ok: true, matched: false })
 
   await ensureSession(sessionId)
