@@ -342,21 +342,21 @@
           "1 voz da família",
           "Cancele quando quiser"
         ],
-        "checkoutUrl": ""
+        "checkoutUrl": "https://pay.cakto.com.br/wuwbuyg_1218202"
       },
       {
         "id": "anual",
         "name": "Anual",
-        "price": "R$ 149,90",
+        "price": "R$ 147,00",
         "period": "por ano",
-        "note": "≈ R$ 12,50 por mês",
-        "value": 149.9,
+        "note": "≈ R$ 12,25 por mês",
+        "value": 147,
         "features": [
           "Biblioteca completa",
           "Até 3 vozes (mãe, pai, avó)",
-          "Economia de 37%"
+          "Economia de 38%"
         ],
-        "checkoutUrl": ""
+        "checkoutUrl": "https://pay.cakto.com.br/6dg8mmw_1218232"
       }
     ],
     "recommendByTier": {

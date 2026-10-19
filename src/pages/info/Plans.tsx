@@ -19,8 +19,8 @@ const PLANS: Array<{ id: PlanId; name: string; price: string; note: string; feat
   {
     id: 'annual',
     name: 'Anual',
-    price: 'R$ 149,90',
-    note: 'por ano · ≈ R$ 12,50/mês',
+    price: 'R$ 147,00',
+    note: 'por ano · ≈ R$ 12,25/mês',
     features: ['Biblioteca completa', 'Até 3 vozes (mãe, pai, avó)', 'Histórias novas toda semana', 'Modo hora de dormir'],
     highlight: true,
   },
