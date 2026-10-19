@@ -35,8 +35,20 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,webp,svg,woff2}'],
         // Fontes: só os subconjuntos usados em português.
         globIgnores: ['**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese,devanagari}-*.woff2', '**/*.woff'],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        // Páginas: sempre a versão atual da rede (evita abrir uma versão antiga do app logo após
+        // uma publicação); sem internet, usa a cópia guardada do app.
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) => request.mode === 'navigate' && !url.pathname.startsWith('/api/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'paginas',
+              networkTimeoutSeconds: 4,
+              precacheFallback: { fallbackURL: '/index.html' },
+            },
+          },
+        ],
       },
     }),
   ],
