@@ -298,12 +298,6 @@
   object-fit: cover;
 }
 
-.quiz-img--art svg {
-  width: 46%;
-  height: 46%;
-  color: var(--c-sun);
-  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.18));
-}
 
 /* ---------- Carregamento ---------- */
 

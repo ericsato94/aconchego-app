@@ -3,7 +3,10 @@ import castle from '../assets/covers/castle.webp'
 import lion from '../assets/covers/lion.webp'
 import whale from '../assets/covers/whale.webp'
 import fox from '../assets/covers/fox.webp'
-import lionHead from '../assets/lion-head.webp'
+import star from '../assets/covers/star.webp'
+import panda from '../assets/covers/panda.webp'
+import braveLion from '../assets/covers/brave-lion.webp'
+import river from '../assets/covers/river.webp'
 
 /**
  * Catálogo local (V1). Em produção virá da API/banco — ver src/services/catalog.ts.
@@ -98,7 +101,7 @@ export const STORIES: Story[] = [
     ageRange: [2, 6],
     tags: ['sono', 'aventura'],
     free: false,
-    cover: { kind: 'art', icon: 'star', from: '#24387e', to: '#5a6fd6' },
+    cover: { kind: 'image', src: star, bg: '#24387e', focus: 'center top' },
     paragraphs: [
       '[softly] Numa noite bem clarinha, uma estrelinha brincava de pega-pega com as outras estrelas. [surprised] E, de repente, escorregou do céu!',
       'Plim! Ela caiu bem devagar no jardim de uma casa, em cima de uma folha de alface.',
@@ -117,7 +120,7 @@ export const STORIES: Story[] = [
     ageRange: [2, 6],
     tags: ['sono'],
     free: false,
-    cover: { kind: 'art', icon: 'moon', from: '#6a4fd8', to: '#a88bf8' },
+    cover: { kind: 'image', src: panda, bg: '#2d4a9a', focus: 'center top' },
     paragraphs: [
       'No meio de uma floresta de bambus, morava um pandinha chamado Bambu, que nunca, nunca queria dormir.',
       '[mischievously] — Eu não estou com sono! — dizia ele, rolando de um lado para o outro. [softly] Mas seus olhinhos já estavam pesados.',
@@ -136,7 +139,7 @@ export const STORIES: Story[] = [
     ageRange: [3, 8],
     tags: ['aventura', 'amizade'],
     free: false,
-    cover: { kind: 'art', icon: 'crown', from: '#ffb648', to: '#ffd54f', image: lionHead },
+    cover: { kind: 'image', src: braveLion, bg: '#bfe3f7', focus: 'center top' },
     paragraphs: [
       '[excited] Todo mundo na floresta achava que o leão Juba não tinha medo de nada. Afinal, ele era o rei!',
       '[whispers] Mas Juba tinha um segredo: ele morria de medo do escuro.',
@@ -155,7 +158,7 @@ export const STORIES: Story[] = [
     ageRange: [2, 7],
     tags: ['sono', 'natureza'],
     free: false,
-    cover: { kind: 'art', icon: 'music', from: '#3f9f57', to: '#7fd18a' },
+    cover: { kind: 'image', src: river, bg: '#9fd5f6', focus: 'center top' },
     paragraphs: [
       '[softly] Lá no alto da montanha, entre pedras cobertas de musgo, nasceu um riozinho fininho como um fio de prata.',
       '[happy] Ele descia cantando: plic, ploc, plic, ploc! E a sua música acordava as flores do caminho.',

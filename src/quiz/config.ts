@@ -2,7 +2,7 @@ import raw from './quiz.config.json'
 
 /** Tipos do arquivo de configuração (quiz.config.json). Edite os textos lá, não aqui. */
 export type QuizImageKey =
-  | 'castelo' | 'leao' | 'baleia' | 'raposa' | 'leao-dormindo' | 'leao-lendo' | 'estrelas' | 'lua' | 'musica'
+  | 'castelo' | 'leao' | 'leao-corajoso' | 'baleia' | 'raposa' | 'leao-dormindo' | 'leao-lendo' | 'estrelas' | 'lua' | 'musica'
 
 export interface QuizOption {
   id: string

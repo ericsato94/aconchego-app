@@ -97,9 +97,14 @@ export interface UserData {
   notifications: AppNotification[]
 }
 
-export type CoverArt =
-  | { kind: 'image'; src: string; bg: string }
-  | { kind: 'art'; icon: 'star' | 'moon' | 'music' | 'crown'; from: string; to: string; image?: string }
+export interface CoverArt {
+  kind: 'image'
+  src: string
+  /** Cor de fundo enquanto a imagem carrega. */
+  bg: string
+  /** Ponto que deve ficar visível nos recortes (CSS object-position), ex.: "center top" para capas com título. */
+  focus?: string
+}
 
 export interface Story {
   id: string
