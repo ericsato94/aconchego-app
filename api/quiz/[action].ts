@@ -143,10 +143,16 @@ async function recordPurchase(request: Request) {
   const secrets = (process.env.QUIZ_WEBHOOK_SECRET ?? '').split(',').map((s) => s.trim()).filter(Boolean)
   if (!secrets.length) throw new HttpError(503, 'Webhook de compras não configurado.')
   const b = await body(request)
-  const given = String(b.secret ?? request.headers.get('x-quiz-secret') ?? '')
+  const given = String(b.secret ?? request.headers.get('x-quiz-secret') ?? '').trim()
   // Compara com todas (sem parar na primeira) para não vazar informação pelo tempo de resposta.
   const valid = secrets.map((s) => sameSecret(given, s)).includes(true)
-  if (!valid) throw new HttpError(401, 'Não autorizado.')
+  if (!valid) {
+    // Diagnóstico nos logs da Vercel sem expor a chave: só o tamanho e o início.
+    console.warn(
+      `[webhook] chave recusada: ${given.length} caracteres, início "${given.slice(0, 4)}", evento ${String(b.event ?? '-')}`,
+    )
+    throw new HttpError(401, 'Não autorizado.')
+  }
 
   const isCakto = typeof b.event === 'string'
   if (isCakto && b.event !== 'purchase_approved') return json({ ok: true, ignored: b.event })
