@@ -1,0 +1,385 @@
+{
+  "_ajuda": "Edite os textos à vontade. Não mude os campos \"id\" de perguntas e respostas depois de publicar: eles ligam as respostas às métricas do painel. Imagens disponíveis: castelo, leao, baleia, raposa, leao-dormindo, leao-lendo, estrelas, lua, musica.",
+  "intro": {
+    "eyebrow": "Quiz gratuito · 2 minutos",
+    "title": "Descubra o jeito ideal de fazer seu filho dormir ouvindo a sua voz",
+    "subtitle": "Responda 7 perguntas rapidinhas e receba um plano de histórias feito para a sua família.",
+    "button": "Começar o quiz",
+    "note": "Sem cadastro para começar. Suas respostas ficam só com a gente."
+  },
+  "questions": [
+    {
+      "id": "idade",
+      "kind": "text",
+      "title": "Quantos anos tem a criança que vai ouvir as histórias?",
+      "options": [
+        {
+          "id": "2-3",
+          "label": "2 a 3 anos"
+        },
+        {
+          "id": "4-5",
+          "label": "4 a 5 anos"
+        },
+        {
+          "id": "6-8",
+          "label": "6 a 8 anos"
+        },
+        {
+          "id": "mais",
+          "label": "Mais de 8 anos"
+        }
+      ]
+    },
+    {
+      "id": "historias",
+      "kind": "image",
+      "title": "Que tipo de história seu filho mais ama?",
+      "subtitle": "Toque na imagem que mais tem a cara dele.",
+      "options": [
+        {
+          "id": "aventura",
+          "label": "Aventura e castelos",
+          "image": "castelo"
+        },
+        {
+          "id": "bichos",
+          "label": "Bichos falantes",
+          "image": "leao"
+        },
+        {
+          "id": "natureza",
+          "label": "Mar e natureza",
+          "image": "baleia"
+        },
+        {
+          "id": "amizade",
+          "label": "Amizade e lições",
+          "image": "raposa"
+        }
+      ]
+    },
+    {
+      "id": "clima",
+      "kind": "image",
+      "title": "Como você imagina a hora de dormir perfeita?",
+      "options": [
+        {
+          "id": "calminho",
+          "label": "Bem calminha, quase um sussurro",
+          "image": "leao-dormindo"
+        },
+        {
+          "id": "risadas",
+          "label": "Com risadas antes de apagar a luz",
+          "image": "leao-lendo"
+        },
+        {
+          "id": "estrelas",
+          "label": "Sonhando com estrelas",
+          "image": "estrelas"
+        },
+        {
+          "id": "musica",
+          "label": "Embalada por uma cantiga",
+          "image": "musica"
+        }
+      ]
+    },
+    {
+      "id": "dor",
+      "kind": "text",
+      "role": "pain",
+      "title": "O que mais aperta o seu coração na hora de dormir?",
+      "options": [
+        {
+          "id": "chego-tarde",
+          "label": "Chego tarde e perco a hora da história"
+        },
+        {
+          "id": "longe",
+          "label": "Viajo ou moro longe do meu filho"
+        },
+        {
+          "id": "telas",
+          "label": "Acabo deixando o celular ou o YouTube"
+        },
+        {
+          "id": "cansaco",
+          "label": "Estou cansado(a) demais para ler"
+        },
+        {
+          "id": "avos",
+          "label": "Os avós moram longe e sentem falta"
+        }
+      ]
+    },
+    {
+      "id": "frequencia",
+      "kind": "text",
+      "title": "Em quantas noites da semana você consegue contar história hoje?",
+      "options": [
+        {
+          "id": "quase-nunca",
+          "label": "Quase nunca"
+        },
+        {
+          "id": "1-2",
+          "label": "1 ou 2 noites"
+        },
+        {
+          "id": "3-5",
+          "label": "3 a 5 noites"
+        },
+        {
+          "id": "todas",
+          "label": "Todas, mas queria variar"
+        }
+      ]
+    },
+    {
+      "id": "investimento",
+      "kind": "text",
+      "role": "budget",
+      "title": "Quanto você investe hoje por mês em livros, apps ou streaming para seu filho?",
+      "options": [
+        {
+          "id": "nada",
+          "label": "Nada por enquanto",
+          "tier": "basico"
+        },
+        {
+          "id": "ate-20",
+          "label": "Até R$ 20",
+          "tier": "basico"
+        },
+        {
+          "id": "20-50",
+          "label": "Entre R$ 20 e R$ 50",
+          "tier": "familia"
+        },
+        {
+          "id": "mais-50",
+          "label": "Mais de R$ 50",
+          "tier": "familia"
+        }
+      ]
+    },
+    {
+      "id": "objecao",
+      "kind": "text",
+      "role": "objection",
+      "title": "O que impediu você de resolver isso até hoje?",
+      "options": [
+        {
+          "id": "tempo",
+          "label": "Achei que não teria tempo de gravar"
+        },
+        {
+          "id": "privacidade",
+          "label": "Tenho receio de expor a minha voz"
+        },
+        {
+          "id": "robotico",
+          "label": "Achei que ia soar robótico"
+        },
+        {
+          "id": "preco",
+          "label": "Achei que seria caro"
+        },
+        {
+          "id": "nao-sabia",
+          "label": "Não sabia que isso era possível"
+        }
+      ]
+    }
+  ],
+  "loading": {
+    "title": "Preparando o seu resultado",
+    "seconds": 4,
+    "messages": [
+      "Lendo as suas respostas com carinho…",
+      "Escolhendo histórias para a idade do seu filho…",
+      "Montando a rotina ideal para a hora de dormir…",
+      "Quase lá! Finalizando o seu plano…"
+    ]
+  },
+  "lead": {
+    "title": "Seu resultado está pronto!",
+    "subtitle": "Diga como podemos te chamar e para onde enviar o seu plano de histórias.",
+    "nameLabel": "Seu nome",
+    "whatsappLabel": "WhatsApp",
+    "emailLabel": "E-mail",
+    "consent": "Aceito receber o meu resultado e novidades do Aconchego. Posso cancelar quando quiser.",
+    "button": "Ver meu resultado"
+  },
+  "identities": {
+    "_ajuda": "A identidade é escolhida pela resposta da pergunta \"historias\". Em \"stories\", use os ids das histórias do catálogo (src/data/stories.ts).",
+    "aventura": {
+      "name": "Família Exploradora",
+      "image": "castelo",
+      "description": "Na sua casa, toda noite é uma viagem. Seu filho adora heróis, castelos e caminhos novos, e dorme melhor quando a aventura termina com um abraço.",
+      "stories": [
+        "o-pequeno-principe",
+        "a-estrelinha-perdida",
+        "o-leao-corajoso"
+      ]
+    },
+    "bichos": {
+      "name": "Família Rugido Gentil",
+      "image": "leao",
+      "description": "Leões que dão gargalhadas, ratinhos corajosos e bichos que viram amigos: seu filho aprende brincando e adormece rindo baixinho.",
+      "stories": [
+        "o-leao-e-o-ratinho",
+        "o-panda-e-o-sonho",
+        "o-leao-corajoso"
+      ]
+    },
+    "natureza": {
+      "name": "Família Brisa do Mar",
+      "image": "baleia",
+      "description": "Ondas, estrelas e canções do mar. O sono da sua família pede calma, e as histórias da natureza são o caminho mais curto até ele.",
+      "stories": [
+        "a-baleia-e-o-mar",
+        "a-cancao-do-rio",
+        "a-estrelinha-perdida"
+      ]
+    },
+    "amizade": {
+      "name": "Família Coração Amigo",
+      "image": "raposa",
+      "description": "Vocês valorizam gentileza e boas lições. Histórias de amizade ajudam seu filho a entender sentimentos, e terminam sempre num aconchego.",
+      "stories": [
+        "o-raposo-e-a-cegonha",
+        "o-leao-e-o-ratinho",
+        "o-pequeno-principe"
+      ]
+    }
+  },
+  "painEcho": {
+    "_ajuda": "Texto que repete a dor marcada na pergunta \"dor\".",
+    "chego-tarde": "Você contou que chega tarde e perde a hora da história. Com o Aconchego, seu filho ouve a sua voz mesmo quando você ainda está a caminho de casa.",
+    "longe": "Você contou que viaja ou mora longe. A distância continua, mas a sua voz pode estar ao lado dele todas as noites.",
+    "telas": "Você contou que acaba recorrendo ao celular ou ao YouTube. Aqui é só áudio, sem tela acesa, e com a voz que ele mais ama.",
+    "cansaco": "Você contou que chega cansado(a) demais para ler. Tudo bem: grave uma vez e deixe a sua voz contar enquanto vocês ficam abraçadinhos.",
+    "avos": "Você contou que os avós moram longe. Eles podem gravar a voz e virar os contadores de histórias favoritos dos netos."
+  },
+  "objectionAnswers": {
+    "_ajuda": "Resposta à objeção marcada na última pergunta.",
+    "tempo": {
+      "title": "Você só grava uma vez, em poucos minutos",
+      "text": "É uma gravação guiada de cerca de 3 minutos. Depois disso, toda história nova já sai com a sua voz, sem gravar mais nada."
+    },
+    "privacidade": {
+      "title": "Sua voz é sua, e só sua",
+      "text": "A voz é guardada com criptografia, usada só para as histórias da sua família e pode ser apagada em um toque, quando você quiser. Seguimos a LGPD."
+    },
+    "robotico": {
+      "title": "Soa como você contando, com emoção",
+      "text": "A narração respeita o seu jeito de falar, com pausas, alegria e sussurros na hora certa. Você ouve e aprova antes da primeira história."
+    },
+    "preco": {
+      "title": "Menos que um lanche por mês",
+      "text": "Você pode começar de graça, com 3 histórias, e só assina se fizer sentido para a sua família."
+    },
+    "nao-sabia": {
+      "title": "Agora é possível, e é simples",
+      "text": "Você lê um trechinho em voz alta, o Aconchego aprende a sua voz e passa a contar qualquer história do catálogo do seu jeito."
+    }
+  },
+  "result": {
+    "eyebrow": "Seu resultado",
+    "previewTitle": "Seu plano de 7 noites",
+    "previewNights": [
+      "Noite 1 · Uma história curtinha para criar o ritual",
+      "Noite 2 · A história favorita do tipo que seu filho ama",
+      "Noite 3 · Uma aventura com final bem tranquilo",
+      "Noite 4 · Modo hora de dormir com timer",
+      "Noite 5 · Uma lição de amizade",
+      "Noite 6 · A história que ele vai pedir de novo",
+      "Noite 7 · Surpresa especial para fechar a semana"
+    ],
+    "visibleNights": 2,
+    "lockedNote": "Libere o plano completo com a sua voz",
+    "cta": "Quero meu plano completo",
+    "share": "Compartilhar o quiz",
+    "shareText": "Fiz o quiz do Aconchego e descobri que somos a {identity}! Descubra o perfil da sua família:",
+    "restart": "Refazer o quiz"
+  },
+  "offer": {
+    "headline": "{name}, a sua voz pode ser a última coisa que seu filho ouve antes de dormir",
+    "subheadline": "Grave uma vez. Todas as noites, as histórias chegam contadas por você.",
+    "howItWorks": [
+      {
+        "title": "Grave sua voz",
+        "text": "Uma leitura guiada de cerca de 3 minutos."
+      },
+      {
+        "title": "A gente prepara",
+        "text": "O Aconchego aprende o seu jeito de contar."
+      },
+      {
+        "title": "Hora de dormir",
+        "text": "Escolha a história, ative o timer e pronto."
+      }
+    ],
+    "benefits": [
+      "Histórias infantis narradas com a sua voz",
+      "Modo hora de dormir: tela escura, volume baixo e timer",
+      "Histórias originais em português, para 2 a 8 anos",
+      "Exclusão total da sua voz em um toque",
+      "Funciona no celular, tablet e computador"
+    ],
+    "plans": [
+      {
+        "id": "mensal",
+        "name": "Mensal",
+        "price": "R$ 19,90",
+        "period": "por mês",
+        "value": 19.9,
+        "features": [
+          "Biblioteca completa",
+          "1 voz da família",
+          "Cancele quando quiser"
+        ],
+        "checkoutUrl": ""
+      },
+      {
+        "id": "anual",
+        "name": "Anual",
+        "price": "R$ 149,90",
+        "period": "por ano",
+        "note": "≈ R$ 12,50 por mês",
+        "value": 149.9,
+        "features": [
+          "Biblioteca completa",
+          "Até 3 vozes (mãe, pai, avó)",
+          "Economia de 37%"
+        ],
+        "checkoutUrl": ""
+      }
+    ],
+    "recommendByTier": {
+      "basico": "mensal",
+      "familia": "anual"
+    },
+    "recommendedLabel": "Recomendado para você",
+    "checkoutButton": "Garantir meu acesso",
+    "freeAlternative": "Prefiro começar grátis com 3 histórias",
+    "guarantee": "",
+    "faq": [
+      {
+        "q": "Preciso gravar muita coisa?",
+        "a": "Não. É uma leitura guiada de cerca de 3 minutos, feita uma única vez."
+      },
+      {
+        "q": "Funciona em qualquer celular?",
+        "a": "Sim. Direto no navegador ou instalado como app, no celular, tablet ou computador."
+      },
+      {
+        "q": "Posso apagar a minha voz?",
+        "a": "Sim, em um toque, no seu perfil. Apagamos a voz e todas as gravações."
+      }
+    ]
+  }
+}

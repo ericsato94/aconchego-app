@@ -23,6 +23,14 @@ const Plans = lazy(() => import('./pages/info/Plans'))
 const Privacy = lazy(() => import('./pages/info/Privacy'))
 const Help = lazy(() => import('./pages/info/Help'))
 const NotFound = lazy(() => import('./pages/info/NotFound'))
+const QuizIntro = lazy(() => import('./pages/quiz/QuizIntro'))
+const QuizQuestion = lazy(() => import('./pages/quiz/QuizQuestion'))
+const QuizLoading = lazy(() => import('./pages/quiz/QuizLoading'))
+const QuizLead = lazy(() => import('./pages/quiz/QuizLead'))
+const QuizResult = lazy(() => import('./pages/quiz/QuizResult'))
+const SalesPage = lazy(() => import('./pages/quiz/SalesPage'))
+const Thanks = lazy(() => import('./pages/quiz/Thanks'))
+const AdminPage = lazy(() => import('./pages/admin/AdminPage'))
 
 /** Exige sessão e consentimento LGPD registrado. */
 function RequireAuth() {
@@ -70,6 +78,16 @@ export default function App() {
       <ScrollToTop />
       <Suspense fallback={<PageFallback />}>
         <Routes>
+          {/* Quiz de vendas e painel: abertos, fora do login do app. */}
+          <Route path="/quiz" element={<QuizIntro />} />
+          <Route path="/quiz/analisando" element={<QuizLoading />} />
+          <Route path="/quiz/cadastro" element={<QuizLead />} />
+          <Route path="/quiz/resultado" element={<QuizResult />} />
+          <Route path="/quiz/:step" element={<QuizQuestion />} />
+          <Route path="/oferta" element={<SalesPage />} />
+          <Route path="/oferta/obrigado" element={<Thanks />} />
+          <Route path="/admin" element={<AdminPage />} />
+
           <Route element={<PublicOnly />}>
             <Route path="/bem-vindo" element={<Welcome />} />
             <Route path="/cadastro" element={<SignUp />} />

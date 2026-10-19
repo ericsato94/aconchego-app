@@ -1,0 +1,417 @@
+/* Painel de métricas — mesma identidade do app, densidade de painel. */
+
+.admin {
+  min-height: 100dvh;
+  padding: calc(var(--safe-top) + var(--sp-4)) var(--gutter) var(--sp-10);
+  background: var(--c-bg);
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.admin--center {
+  display: grid;
+  place-items: center;
+  max-width: none;
+  background: linear-gradient(180deg, var(--c-sky-bg) 0%, var(--c-bg) 100%);
+}
+
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: min(100%, 400px);
+  padding: var(--sp-8) var(--sp-6);
+  text-align: center;
+}
+
+.admin-login .field {
+  text-align: left;
+}
+
+.admin-login__logo {
+  width: 120px;
+  margin: 0 auto;
+}
+
+.admin__title {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  color: var(--c-navy);
+}
+
+.admin__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+
+.admin__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.admin__brand img {
+  height: 44px;
+}
+
+.admin__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.admin__seg {
+  display: flex;
+  gap: 6px;
+}
+
+.admin__seg--wrap {
+  flex-wrap: wrap;
+  margin: var(--sp-3) 0;
+}
+
+.admin__loading {
+  padding: var(--sp-10) 0;
+  text-align: center;
+}
+
+.admin__grid {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.admin__kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+  background: #fff;
+  box-shadow: var(--sh-sm);
+}
+
+.kpi__label {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.kpi__value {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  color: var(--c-navy);
+  line-height: 1.1;
+}
+
+.kpi__hint {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.admin-card {
+  padding: var(--sp-5);
+  border-radius: var(--r-xl);
+  background: #fff;
+  box-shadow: var(--sh-sm);
+  min-width: 0;
+}
+
+.admin-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.admin-card__title {
+  font-size: var(--fs-lg);
+  color: var(--c-navy);
+}
+
+.admin-card__sub {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+/* Funil e barras horizontais (uma cor, ponta arredondada) */
+
+.funnel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.funnel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label value' 'track track' 'step step';
+  column-gap: var(--sp-3);
+  row-gap: 4px;
+  align-items: center;
+}
+
+.funnel__label {
+  grid-area: label;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-navy);
+}
+
+.funnel--compact .funnel__label {
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.funnel__value {
+  grid-area: value;
+  font-weight: 700;
+  color: var(--c-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.funnel__track {
+  grid-area: track;
+  display: block;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--c-surface-tint);
+  overflow: hidden;
+}
+
+.funnel__bar {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--c-primary);
+  transition: width 0.5s var(--ease);
+}
+
+.funnel__step {
+  grid-area: step;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.funnel__step.is-loss {
+  color: #b4234c;
+  font-weight: 600;
+}
+
+/* Gráfico diário */
+
+.daily-chart {
+  position: relative;
+  width: 100%;
+  touch-action: pan-y;
+}
+
+.daily-chart svg {
+  display: block;
+  overflow: visible;
+}
+
+.daily-chart__grid {
+  stroke: var(--c-border);
+  stroke-width: 1;
+}
+
+.daily-chart__axis {
+  fill: var(--c-text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-chart__area {
+  fill: var(--c-primary);
+  opacity: 0.1;
+}
+
+.daily-chart__line {
+  fill: none;
+  stroke: var(--c-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.daily-chart__cross {
+  stroke: var(--c-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.daily-chart__dot {
+  fill: var(--c-primary);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.daily-chart__tip {
+  position: absolute;
+  width: 130px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--c-navy);
+  color: #fff;
+  font-size: var(--fs-xs);
+  pointer-events: none;
+  box-shadow: var(--sh-md);
+}
+
+.daily-chart__tip strong {
+  display: block;
+  font-size: var(--fs-md);
+}
+
+.daily-chart__tip small {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Tabelas */
+
+.admin-table-wrap {
+  overflow-x: auto;
+  margin-top: var(--sp-2);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--c-border);
+  white-space: nowrap;
+}
+
+.admin-table th:first-child,
+.admin-table td:first-child {
+  text-align: left;
+}
+
+.admin-table th {
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.admin-table td {
+  color: var(--c-navy);
+}
+
+/* Distribuição das respostas */
+
+.answers {
+  display: grid;
+  gap: var(--sp-5);
+  margin-top: var(--sp-3);
+}
+
+.answers__q h3 {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-navy);
+  margin-bottom: var(--sp-2);
+}
+
+.answers__q ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.answers__q li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label value' 'track track';
+  gap: 2px var(--sp-3);
+  align-items: center;
+}
+
+.answers__label {
+  grid-area: label;
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.answers__value {
+  grid-area: value;
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.answers__q .funnel__track {
+  height: 10px;
+}
+
+@media (min-width: 768px) {
+  .admin__kpis {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .answers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin {
+    padding-top: var(--sp-8);
+  }
+
+  .admin__grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .admin__kpis,
+  .admin__answers {
+    grid-column: 1 / -1;
+  }
+
+  .admin__funnel,
+  .admin__steps {
+    grid-column: span 5;
+  }
+
+  .admin__daily,
+  .admin__sources {
+    grid-column: span 7;
+  }
+
+  .funnel__row {
+    grid-template-columns: minmax(150px, 0.8fr) minmax(0, 1.4fr) 56px;
+    grid-template-areas: 'label track value' '. step step';
+  }
+
+  .answers {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -550,6 +550,48 @@ a {
   box-shadow: var(--focus-ring);
 }
 
+/* ---------- Perguntas frequentes (acordeão) ---------- */
+
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 860px;
+}
+
+.faq__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--c-navy);
+  border-radius: var(--r-lg);
+}
+
+.faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq__item summary svg {
+  flex-shrink: 0;
+  color: var(--c-primary);
+  transition: transform 0.2s var(--ease);
+}
+
+.faq__item[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.faq__item p {
+  padding: 0 var(--sp-5) var(--sp-5);
+  max-width: var(--text-max);
+  color: var(--c-text);
+}
+
 /* ---------- Horizontal scroller ---------- */
 
 .h-scroll {
