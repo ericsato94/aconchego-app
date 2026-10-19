@@ -36,9 +36,10 @@ Sofia cadastrada e histórico (voz simulada).
 
 - **Textos editáveis** (perguntas, resultados, oferta e preços): `src/quiz/quiz.config.json`.
 - **Link de pagamento**: preencha `checkoutUrl` de cada plano no arquivo acima. O app acrescenta `?src=quiz&sid=<sessão>` ao link.
-- **Compra confirmada**: configure a plataforma para enviar `POST /api/quiz/purchase` com o cabeçalho
-  `x-quiz-secret: <QUIZ_WEBHOOK_SECRET>` e o corpo `{ "sessionId": "<sid>", "plan": "anual", "value": 149.9 }`
-  (ou `email` no lugar de `sessionId`).
+- **Compra confirmada (Cakto)**: em Integrações > Webhooks, URL `https://aconchego-app.vercel.app/api/quiz/purchase`,
+  evento "Compra aprovada" e chave secreta igual a `QUIZ_WEBHOOK_SECRET`. A compra é ligada ao quiz pelo e-mail ou
+  WhatsApp do cadastro; reenvios do mesmo pedido não contam duas vezes. Outras plataformas: cabeçalho
+  `x-quiz-secret` e corpo `{ "sessionId" | "email", "plan", "value" }`.
 - **Origem do tráfego**: use `utm_source`, `utm_medium` e `utm_campaign` nos links (ex.: `/quiz?utm_source=instagram`).
 - Eventos, cadastros e métricas ficam no Supabase (`quiz_sessions`, `quiz_events`, `quiz_leads`, função `quiz_metrics`).
 

@@ -6,7 +6,7 @@ import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
  * Funil do quiz de vendas. Todos os eventos ficam no banco (Supabase), nunca no navegador.
  *   POST /api/quiz/event     { sessionId, type, step?, questionId?, answer?, plan?, source? }
  *   POST /api/quiz/lead      { sessionId, name, email?, whatsapp?, consent, answers, identity }
- *   POST /api/quiz/purchase  aviso da plataforma de pagamento (cabeçalho x-quiz-secret)
+ *   POST /api/quiz/purchase  aviso de compra da plataforma de pagamento (Cakto ou genérico)
  */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const SLUG = /^[a-z0-9-]{1,40}$/
@@ -98,17 +98,14 @@ async function saveLead(request: Request) {
 const sameSecret = (a: string, b: string) =>
   timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest())
 
-/** Compra confirmada pela plataforma de pagamento (identifica pela sessão do quiz ou pelo e-mail do cadastro). */
-async function recordPurchase(request: Request) {
-  const secret = process.env.QUIZ_WEBHOOK_SECRET
-  if (!secret) throw new HttpError(503, 'Webhook de compras não configurado.')
-  if (!sameSecret(request.headers.get('x-quiz-secret') ?? '', secret)) throw new HttpError(401, 'Não autorizado.')
-  const b = await body(request)
-  const admin = supabaseAdmin()
+const digits = (value: unknown) => String(value ?? '').replace(/\D/g, '')
+/** Telefone sem o +55: DDD + número. */
+const localPhone = (value: unknown) => digits(value).replace(/^55(?=\d{10,11}$)/, '')
 
-  let sessionId = UUID.test(String(b.sessionId ?? '')) ? String(b.sessionId) : null
-  const email = text(b.email, 160)?.toLowerCase()
-  if (!sessionId && email) {
+/** Acha a sessão do quiz pelo cadastro (e-mail ou WhatsApp) — a plataforma não devolve os parâmetros do link. */
+async function sessionFromLead(email?: string | null, phone?: string | null) {
+  const admin = supabaseAdmin()
+  if (email) {
     const { data } = await admin
       .from('quiz_leads')
       .select('session_id')
@@ -116,21 +113,65 @@ async function recordPurchase(request: Request) {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-    sessionId = data?.session_id ?? null
+    if (data) return data.session_id as string
   }
-  if (!sessionId) return json({ ok: false, error: 'Compra sem sessão do quiz correspondente.' }, 202)
+  // Mesmo DDD e mesmos 8 últimos dígitos (tolera o 9 extra e o +55).
+  const local = localPhone(phone)
+  if (local.length >= 10) {
+    const { data } = await admin
+      .from('quiz_leads')
+      .select('session_id, whatsapp')
+      .like('whatsapp', `%${local.slice(-8)}`)
+      .order('created_at', { ascending: false })
+      .limit(5)
+    const match = (data ?? []).find((l) => localPhone(l.whatsapp).slice(0, 2) === local.slice(0, 2))
+    if (match) return match.session_id as string
+  }
+  return null
+}
 
-  const plan = text(b.plan, 40)
-  const value = Number(b.value)
+const planFromOffer = (name: string) => (/anual/i.test(name) ? 'anual' : /mensal/i.test(name) ? 'mensal' : null)
+
+/**
+ * Compra confirmada pela plataforma de pagamento. Aceita:
+ * - Cakto: { secret, event: "purchase_approved", data: { id, customer: { email, phone }, offer: { name }, amount } }
+ * - Genérico: cabeçalho x-quiz-secret + { sessionId | email, plan, value }
+ * Avisos válidos sempre recebem 2xx (a Cakto espera até 8 s e reenvia quando não há resposta).
+ */
+async function recordPurchase(request: Request) {
+  const secret = process.env.QUIZ_WEBHOOK_SECRET
+  if (!secret) throw new HttpError(503, 'Webhook de compras não configurado.')
+  const b = await body(request)
+  const given = String(b.secret ?? request.headers.get('x-quiz-secret') ?? '')
+  if (!sameSecret(given, secret)) throw new HttpError(401, 'Não autorizado.')
+
+  const isCakto = typeof b.event === 'string'
+  if (isCakto && b.event !== 'purchase_approved') return json({ ok: true, ignored: b.event })
+
+  const d = ((isCakto ? b.data : b) ?? {}) as Record<string, unknown>
+  const customer = (d.customer ?? {}) as Record<string, unknown>
+  const offer = (d.offer ?? {}) as Record<string, unknown>
+  const email = text(customer.email ?? d.email, 160)?.toLowerCase() ?? null
+  const externalId = text(d.id, 80)
+  const plan = text(d.plan, 40) ?? planFromOffer(String(offer.name ?? ''))
+  const value = Number(d.amount ?? d.value)
+
+  let sessionId = UUID.test(String(d.sessionId ?? '')) ? String(d.sessionId) : null
+  sessionId ??= await sessionFromLead(email, text(customer.phone, 30))
+  if (!sessionId) return json({ ok: true, matched: false })
+
   await ensureSession(sessionId)
-  const { error } = await admin.from('quiz_events').insert({
+  const { error } = await supabaseAdmin().from('quiz_events').insert({
     session_id: sessionId,
     type: 'purchase',
     plan: plan && SLUG.test(plan) ? plan : null,
     value: Number.isFinite(value) && value >= 0 ? value : null,
+    external_id: externalId ? `${isCakto ? 'cakto' : 'ext'}:${externalId}` : null,
   })
+  // 23505 = pedido já registrado (reenvio do mesmo aviso): confirma sem contar de novo.
+  if (error?.code === '23505') return json({ ok: true, duplicate: true })
   if (error) throw error
-  return json({ ok: true }, 201)
+  return json({ ok: true, matched: true }, 201)
 }
 
 export const POST = route(async (request) => {
