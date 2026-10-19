@@ -22,7 +22,12 @@ function periodEnd(from: Date, plan: PaidPlan) {
 }
 
 /** Atualiza a assinatura a partir de um evento da plataforma. Retorna o que foi feito. */
+/** Domínios reservados para exemplos/testes (ex.: eventos de teste da Cakto usam john.doe@example.com). */
+const TEST_EMAIL = /@example\.(com|org|net)$/i
+
 export async function applyPaymentEvent(event: string, email: string, plan: PaidPlan | null, paidAt: Date, orderId: string | null) {
+  // Nunca libera acesso para e-mails de teste: qualquer um poderia criar uma conta com eles.
+  if (TEST_EMAIL.test(email)) return 'teste ignorado'
   const admin = supabaseAdmin()
   const { data: current } = await admin.from('entitlements').select('*').eq('email', email).maybeSingle()
   const now = new Date()
