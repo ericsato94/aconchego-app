@@ -1,5 +1,5 @@
 import { elevenlabs } from '../_lib/elevenlabs.js'
-import { canCloneVoice, json, requireUser, route } from '../_lib/http.js'
+import { accountAccess, json, requireUser, route } from '../_lib/http.js'
 import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
 
 /**
@@ -7,16 +7,16 @@ import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
  * As gravações já foram enviadas pelo app ao armazenamento (recordings/<user_id>/…);
  * aqui o servidor as busca e envia à ElevenLabs.
  */
-/** GET /api/voices — o usuário logado pode criar voz clonada? */
+/** GET /api/voices — acesso da conta: pode criar voz clonada? qual plano pago está em vigor? */
 export const GET = route(async (request) => {
   const user = await requireUser(request)
-  return json({ allowed: canCloneVoice(user.email) })
+  return json(await accountAccess(user.email))
 })
 
 export const POST = route(async (request) => {
   const { id: userId, email } = await requireUser(request)
-  if (!canCloneVoice(email)) {
-    throw new HttpError(403, 'A voz clonada está liberada só para o time durante os testes.')
+  if (!(await accountAccess(email)).allowed) {
+    throw new HttpError(403, 'A voz clonada faz parte dos planos Mensal e Anual. Assine para gravar a sua voz.')
   }
   const body = (await request.json().catch(() => null)) as { name?: string; paths?: unknown } | null
   const paths = Array.isArray(body?.paths) ? body.paths.filter((p): p is string => typeof p === 'string') : []

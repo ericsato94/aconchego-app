@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { Child, PlanId, RecordingQuality, Settings, User, UserData } from '../types'
+import type { Child, RecordingQuality, Settings, User, UserData } from '../types'
 
 export interface AppActions {
   signUp(name: string, email: string, password: string, child?: Omit<Child, 'id'>): Promise<void>
@@ -17,7 +17,8 @@ export interface AppActions {
   toggleFavorite(storyId: string): boolean
   saveProgress(storyId: string, position: number, total: number, completed?: boolean): void
   addListen(storyId: string, seconds: number): void
-  setPlan(plan: PlanId): void
+  /** Consulta o plano pago no servidor (assinatura na Cakto com o mesmo e-mail) e atualiza o app. */
+  refreshAccess(): Promise<boolean>
   updateSettings(patch: Partial<Settings>): void
   startVoice(phrase: string, quality: RecordingQuality): Promise<void>
   approveVoice(): void

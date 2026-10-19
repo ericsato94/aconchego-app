@@ -1,42 +1,34 @@
 import { useState } from 'react'
 import { BackButton } from '../../components/BackButton'
 import { Icon } from '../../components/Icon'
-import { Modal } from '../../components/Modal'
+import { QUIZ } from '../../quiz/config'
 import { useApp } from '../../store/appContext'
 import { useToast } from '../../store/toastContext'
-import type { PlanId } from '../../types'
 import './info.css'
 
-const PLANS: Array<{ id: PlanId; name: string; price: string; note: string; features: string[]; highlight?: boolean }> = [
-  { id: 'free', name: 'Grátis', price: 'R$ 0', note: 'para sempre', features: ['Clone da sua voz', '3 histórias narradas', 'Modo hora de dormir'] },
-  {
-    id: 'monthly',
-    name: 'Mensal',
-    price: 'R$ 19,90',
-    note: 'por mês',
-    features: ['Biblioteca completa', '1 voz da família', 'Histórias novas toda semana', 'Modo hora de dormir'],
-  },
-  {
-    id: 'annual',
-    name: 'Anual',
-    price: 'R$ 147,00',
-    note: 'por ano · ≈ R$ 12,25/mês',
-    features: ['Biblioteca completa', 'Até 3 vozes (mãe, pai, avó)', 'Histórias novas toda semana', 'Modo hora de dormir'],
-    highlight: true,
-  },
-]
+/** Planos pagos vêm da mesma configuração da oferta do quiz (preço e link de checkout da Cakto). */
+const PAID = QUIZ.offer.plans
+const APP_PLAN: Record<string, 'monthly' | 'annual'> = { mensal: 'monthly', anual: 'annual' }
 
 export default function Plans() {
-  const { data, actions } = useApp()
+  const { user, data, actions } = useApp()
   const toast = useToast()
-  const [pending, setPending] = useState<PlanId | null>(null)
-  const chosen = PLANS.find((p) => p.id === pending)
+  const [checking, setChecking] = useState(false)
+  const isPaid = data.plan !== 'free'
 
-  const confirm = () => {
-    if (!pending) return
-    actions.setPlan(pending)
-    toast(pending === 'free' ? 'Você voltou ao plano gratuito' : 'Plano ativado! Biblioteca liberada.', 'success')
-    setPending(null)
+  const refresh = async () => {
+    setChecking(true)
+    try {
+      const allowed = await actions.refreshAccess()
+      toast(
+        allowed ? 'Plano ativo! A voz clonada e todas as histórias estão liberadas.' : 'Ainda não encontramos um pagamento com o seu e-mail.',
+        allowed ? 'success' : 'info',
+      )
+    } catch {
+      toast('Não foi possível verificar agora. Tente de novo em instantes.', 'error')
+    } finally {
+      setChecking(false)
+    }
   }
 
   return (
@@ -45,67 +37,86 @@ export default function Plans() {
         <BackButton fallback="/perfil" />
         <div>
           <h1 className="page-title">Planos</h1>
-          <p className="page-subtitle">Mais histórias com a sua voz, todas as noites.</p>
+          <p className="page-subtitle">Grave sua voz e libere todas as histórias para a hora de dormir.</p>
         </div>
       </header>
 
       <div className="plans">
-        {PLANS.map((plan) => {
-          const current = data.plan === plan.id
+        <section className={`plan${!isPaid ? ' is-current' : ''}`}>
+          <h2 className="plan__name">Grátis</h2>
+          <p className="plan__price">
+            <strong>R$ 0</strong>
+            <span>para sempre</span>
+          </p>
+          <ul className="plan__features" role="list">
+            <li>
+              <Icon name="check" size={18} /> 3 histórias com a narração padrão
+            </li>
+            <li>
+              <Icon name="check" size={18} /> Modo hora de dormir
+            </li>
+          </ul>
+          <button className="btn btn--block btn--secondary" disabled>
+            {isPaid ? 'Incluído' : 'Plano atual'}
+          </button>
+        </section>
+
+        {PAID.map((plan) => {
+          const current = data.plan === APP_PLAN[plan.id]
+          const highlight = plan.id === 'anual'
           return (
-            <section key={plan.id} className={`plan${plan.highlight ? ' plan--highlight' : ''}${current ? ' is-current' : ''}`}>
-              {plan.highlight && <span className="plan__ribbon">Melhor custo</span>}
+            <section key={plan.id} className={`plan${highlight ? ' plan--highlight' : ''}${current ? ' is-current' : ''}`}>
+              {highlight && <span className="plan__ribbon">Melhor custo</span>}
               <h2 className="plan__name">{plan.name}</h2>
               <p className="plan__price">
                 <strong>{plan.price}</strong>
-                <span>{plan.note}</span>
+                <span>
+                  {plan.period}
+                  {plan.note ? ` · ${plan.note}` : ''}
+                </span>
               </p>
               <ul className="plan__features" role="list">
+                <li>
+                  <Icon name="check" size={18} /> Voz clonada: as histórias com a sua voz
+                </li>
                 {plan.features.map((f) => (
                   <li key={f}>
-                    <Icon name="check" size={18} />
-                    {f}
+                    <Icon name="check" size={18} /> {f}
                   </li>
                 ))}
               </ul>
-              <button
-                className={`btn btn--block ${current ? 'btn--secondary' : plan.highlight ? 'btn--plan' : 'btn--primary'}`}
-                disabled={current}
-                onClick={() => setPending(plan.id)}
-              >
-                {current ? 'Plano atual' : plan.id === 'free' ? 'Voltar ao gratuito' : `Assinar ${plan.name.toLowerCase()}`}
-              </button>
+              {current ? (
+                <button className="btn btn--block btn--secondary" disabled>
+                  Plano atual
+                </button>
+              ) : (
+                <a
+                  className={`btn btn--block ${highlight ? 'btn--plan' : 'btn--primary'}`}
+                  href={plan.checkoutUrl || undefined}
+                  aria-disabled={!plan.checkoutUrl}
+                >
+                  Assinar {plan.name.toLowerCase()}
+                </a>
+              )}
             </section>
           )
         })}
       </div>
 
-      <p className="plans__note muted">
-        Versão local: a assinatura é simulada e nenhum valor é cobrado. Na versão das lojas, o pagamento será feito pela Apple ou Google.
-      </p>
-
-      <Modal
-        open={Boolean(chosen)}
-        onClose={() => setPending(null)}
-        title={chosen?.id === 'free' ? 'Voltar ao plano gratuito?' : `Assinar plano ${chosen?.name}?`}
-        size="sm"
-        footer={
-          <>
-            <button className="btn btn--secondary btn--sm" onClick={() => setPending(null)}>
-              Cancelar
-            </button>
-            <button className="btn btn--primary btn--sm" onClick={confirm}>
-              Confirmar
-            </button>
-          </>
-        }
-      >
-        <p className="muted">
-          {chosen?.id === 'free'
-            ? 'Você continuará com acesso às 3 histórias gratuitas.'
-            : `${chosen?.price} ${chosen?.note}. Simulação: nenhuma cobrança será feita.`}
+      <section className="card info-card plans__how">
+        <h2 className="section-title">Como liberar depois de pagar</h2>
+        <p>
+          No pagamento, use o mesmo e-mail da sua conta: <strong>{user?.email}</strong>. A liberação é automática,
+          assim que o pagamento for aprovado.
         </p>
-      </Modal>
+        <button className="btn btn--secondary btn--sm" onClick={refresh} disabled={checking}>
+          <Icon name="refresh" size={18} />
+          {checking ? 'Verificando…' : 'Já paguei — verificar meu plano'}
+        </button>
+        <p className="muted plans__note">
+          A assinatura é processada pela Cakto. Para cancelar ou trocar de plano, use o e-mail de confirmação da compra.
+        </p>
+      </section>
     </div>
   )
 }

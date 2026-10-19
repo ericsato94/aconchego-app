@@ -6,7 +6,20 @@ export class VoiceApiError extends Error {}
 
 import { accessToken } from './supabase'
 
-let health: Promise<boolean> | null = null
+let health: Promise<VoiceStatus> | null = null
+
+/** configured: servidor com ElevenLabs; allowed: esta conta pode criar voz (plano pago ou time). */
+export interface VoiceStatus {
+  configured: boolean
+  allowed: boolean
+}
+
+export interface AccountAccess {
+  allowed: boolean
+  plan: 'mensal' | 'anual' | null
+  until: string | null
+  source: 'assinatura' | 'time' | null
+}
 
 export interface NarrationMeta {
   audioUrl: string
@@ -29,18 +42,24 @@ async function request<T>(input: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const voiceApi = {
-  /** true quando o servidor está configurado e o usuário logado pode criar voz clonada. */
-  isAvailable(): Promise<boolean> {
+  /** Acesso da conta segundo o servidor: plano pago (Cakto, mesmo e-mail) ou time. */
+  account: () => request<AccountAccess>('/api/voices'),
+
+  /** Situação da voz clonada para a conta logada. */
+  status(): Promise<VoiceStatus> {
     health ??= fetch('/api/health')
       .then((r) => (r.ok ? (r.json() as Promise<{ elevenlabs: boolean }>) : { elevenlabs: false }))
-      .then((b) => (b.elevenlabs ? request<{ allowed: boolean }>('/api/voices').then((v) => v.allowed) : false))
-      .catch(() => false)
-      .then((ok) => {
-        if (!ok) window.setTimeout(() => (health = null), 15_000) // tenta de novo depois
-        return ok
+      .then(async (b) => ({ configured: b.elevenlabs, allowed: b.elevenlabs ? (await voiceApi.account()).allowed : false }))
+      .catch(() => ({ configured: false, allowed: false }))
+      .then((s) => {
+        if (!s.allowed) window.setTimeout(() => (health = null), 15_000) // tenta de novo depois
+        return s
       })
     return health
   },
+
+  /** true quando a conta pode criar voz clonada agora. */
+  isAvailable: () => voiceApi.status().then((s) => s.allowed),
 
   /** Cria a voz a partir das gravações já enviadas ao armazenamento (caminhos recordings/<user_id>/…). */
   async createVoice(name: string, paths: string[]): Promise<string> {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BackButton } from '../../components/BackButton'
 import { Icon } from '../../components/Icon'
 import { ScoreRing } from '../../components/ScoreRing'
@@ -8,6 +8,7 @@ import { READING_SCRIPT, randomPhrase } from '../../data/recordingScript'
 import { useRecorder, type RecorderResult } from '../../hooks/useRecorder'
 import { clock } from '../../lib/format'
 import { recordingsService } from '../../services/recordings'
+import { voiceApi } from '../../services/voiceApi'
 import { useApp } from '../../store/appContext'
 import { usePlayer } from '../../store/playerContext'
 import { useToast } from '../../store/toastContext'
@@ -49,7 +50,7 @@ function usePlayback() {
   return { playing, toggle }
 }
 
-export default function RecordVoice() {
+function RecordVoiceFlow() {
   const { user, data, actions } = useApp()
   const player = usePlayer()
   const navigate = useNavigate()
@@ -330,6 +331,70 @@ export default function RecordVoice() {
           </div>
         </section>
       )}
+    </div>
+  )
+}
+
+/**
+ * Gravar a voz faz parte dos planos pagos. Sem plano (e com o servidor de voz configurado),
+ * mostra o convite para assinar; sem servidor (desenvolvimento), segue em modo demonstração.
+ */
+export default function RecordVoice() {
+  const { actions } = useApp()
+  const toast = useToast()
+  const [state, setState] = useState<'checking' | 'open' | 'locked'>('checking')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    voiceApi.status().then((s) => alive && setState(!s.configured || s.allowed ? 'open' : 'locked'))
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const recheck = async () => {
+    setBusy(true)
+    try {
+      const allowed = await actions.refreshAccess()
+      if (allowed) setState('open')
+      else toast('Ainda não encontramos um pagamento com o e-mail da sua conta.', 'info')
+    } catch {
+      toast('Não foi possível verificar agora. Tente de novo em instantes.', 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (state === 'open') return <RecordVoiceFlow />
+  if (state === 'checking') return <div className="container page" aria-busy="true" />
+
+  return (
+    <div className="container page">
+      <section className="voice-status card">
+        <span className="record__badge-icon">
+          <Icon name="mic" size={28} />
+        </span>
+        <h1 className="voice-status__title">Grave a sua voz</h1>
+        <p className="voice-status__text">
+          A voz clonada faz parte dos planos Mensal e Anual. Assine e, em poucos minutos, todas as histórias passam a
+          ser contadas por você.
+        </p>
+        <div className="voice-status__actions">
+          <Link to="/planos" className="btn btn--plan">
+            <Icon name="sparkles" size={20} />
+            Ver planos
+          </Link>
+          <button className="btn btn--secondary" onClick={recheck} disabled={busy}>
+            <Icon name="refresh" size={20} />
+            {busy ? 'Verificando…' : 'Já assinei — verificar'}
+          </button>
+          <Link to="/historias" className="btn btn--ghost">
+            Ouvir as histórias grátis
+          </Link>
+        </div>
+        <p className="voice-status__note">Use no pagamento o mesmo e-mail da sua conta para a liberação ser automática.</p>
+      </section>
     </div>
   )
 }

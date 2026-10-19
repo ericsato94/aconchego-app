@@ -40,6 +40,10 @@ Sofia cadastrada e histórico (voz simulada).
   evento "Compra aprovada" e chave secreta igual a `QUIZ_WEBHOOK_SECRET`. A compra é ligada ao quiz pelo `sck` do link
   (ou, na falta dele, pelo e-mail/WhatsApp do cadastro); reenvios do mesmo pedido não contam duas vezes. Outras plataformas: cabeçalho
   `x-quiz-secret` e corpo `{ "sessionId" | "email", "plan", "value" }`.
+- **Assinatura libera o app**: cada aviso da Cakto atualiza a tabela `entitlements` pelo e-mail do comprador.
+  A conta do app com o mesmo e-mail ganha voz clonada e todas as histórias. Cancelamento mantém o acesso até o fim
+  do período; reembolso/chargeback corta na hora. Na Cakto, marque também os eventos de assinatura
+  (renovada, cancelada), reembolso e chargeback. `VOICE_ALLOWED_EMAILS` libera o time sem pagar.
 - **Origem do tráfego**: use `utm_source`, `utm_medium` e `utm_campaign` nos links (ex.: `/quiz?utm_source=instagram`).
 - Eventos, cadastros e métricas ficam no Supabase (`quiz_sessions`, `quiz_events`, `quiz_leads`, função `quiz_metrics`).
 

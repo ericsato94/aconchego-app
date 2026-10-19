@@ -1,5 +1,6 @@
 import { timingSafeEqual, createHash } from 'node:crypto'
 import { json, route } from '../_lib/http.js'
+import { applyPaymentEvent, type PaidPlan } from '../_lib/entitlements.js'
 import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
 
 /**
@@ -155,8 +156,7 @@ async function recordPurchase(request: Request) {
   }
 
   const isCakto = typeof b.event === 'string'
-  if (isCakto && b.event !== 'purchase_approved') return json({ ok: true, ignored: b.event })
-
+  const event = isCakto ? String(b.event) : 'purchase_approved'
   const d = ((isCakto ? b.data : b) ?? {}) as Record<string, unknown>
   const customer = (d.customer ?? {}) as Record<string, unknown>
   const offer = (d.offer ?? {}) as Record<string, unknown>
@@ -166,11 +166,23 @@ async function recordPurchase(request: Request) {
   const plan = text(d.plan, 40) ?? planFromName(`${String(offer.name ?? '')} ${String(product.name ?? '')}`)
   const value = Number(d.amount ?? d.value)
 
+  // 1) Assinatura: libera/renova/cancela o acesso da conta do app com o mesmo e-mail.
+  const subscription = (d.subscription ?? {}) as Record<string, unknown>
+  const paidPlan: PaidPlan | null =
+    plan === 'anual' || plan === 'mensal' ? plan : Number.isFinite(value) && value > 0 ? (value >= 100 ? 'anual' : 'mensal') : null
+  const paidAt = new Date(String(d.paidAt ?? subscription.paidAt ?? ''))
+  const access = email
+    ? await applyPaymentEvent(event, email, paidPlan, Number.isNaN(paidAt.getTime()) ? new Date() : paidAt, externalId)
+    : 'sem e-mail'
+
+  // 2) Funil do quiz: só a compra aprovada conta como venda.
+  if (event !== 'purchase_approved') return json({ ok: true, event, access })
+
   // 1º: o código da sessão que o quiz põe no link de checkout (a Cakto devolve em "sck").
   // 2º: o e-mail ou WhatsApp do cadastro do quiz.
   const fromLink = [d.sessionId, d.sck].map(String).find((v) => UUID.test(v)) ?? null
   const sessionId = fromLink ?? (await sessionFromLead(email, text(customer.phone, 30)))
-  if (!sessionId) return json({ ok: true, matched: false })
+  if (!sessionId) return json({ ok: true, matched: false, access })
 
   await ensureSession(sessionId)
   const { error } = await supabaseAdmin().from('quiz_events').insert({
@@ -181,9 +193,9 @@ async function recordPurchase(request: Request) {
     external_id: externalId ? `${isCakto ? 'cakto' : 'ext'}:${externalId}` : null,
   })
   // 23505 = pedido já registrado (reenvio do mesmo aviso): confirma sem contar de novo.
-  if (error?.code === '23505') return json({ ok: true, duplicate: true })
+  if (error?.code === '23505') return json({ ok: true, duplicate: true, access })
   if (error) throw error
-  return json({ ok: true, matched: true }, 201)
+  return json({ ok: true, matched: true, access }, 201)
 }
 
 export const POST = route(async (request) => {

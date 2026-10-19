@@ -40,6 +40,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [data, setData] = useState<UserData>(defaultUserData)
   const userRef = useRef<User | null>(null)
+  /** Sincroniza o plano pago com o servidor (definido depois que as ações existem). */
+  const syncAccess = useRef<(() => void) | null>(null)
   const dataRef = useRef(data)
   useEffect(() => {
     dataRef.current = data
@@ -88,6 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       if (userRef.current?.id === u.id) setStatus('ready')
     }
+    syncAccess.current?.()
   }, [])
 
   const leave = useCallback(() => {
@@ -251,8 +254,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         })
       },
-      setPlan(plan) {
-        update((d) => ({ ...d, plan }))
+      async refreshAccess() {
+        voiceApi.reset()
+        const access = await voiceApi.account()
+        const plan = access.plan === 'anual' ? 'annual' : access.plan === 'mensal' ? 'monthly' : 'free'
+        if (dataRef.current.plan !== plan) update((d) => ({ ...d, plan }))
+        return access.allowed
       },
       updateSettings(patch) {
         update((d) => ({ ...d, settings: { ...d.settings, ...patch } }))
@@ -345,6 +352,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [enter, leave, update],
   )
+
+  useEffect(() => {
+    syncAccess.current = () => void actions.refreshAccess().catch(() => undefined)
+  }, [actions])
 
   const value = useMemo<AppState>(
     () => ({

@@ -1,4 +1,5 @@
 import { ElevenLabsError } from './elevenlabs.js'
+import { activePlan } from './entitlements.js'
 import { HttpError, supabaseAdmin } from './supabaseAdmin.js'
 
 export const json = (body: unknown, status = 200) =>
@@ -27,15 +28,26 @@ export async function requireUser(request: Request): Promise<{ id: string; email
 }
 
 /**
- * Quem pode criar voz clonada (gasta créditos da ElevenLabs).
- * VOICE_ALLOWED_EMAILS: lista separada por vírgula; "*" libera para todos; vazio bloqueia todos.
+ * E-mails do time com acesso liberado sem pagar (testes).
+ * VOICE_ALLOWED_EMAILS: lista separada por vírgula; "*" libera para todos; vazio = ninguém.
  */
-export function canCloneVoice(email: string) {
+export function isTeamEmail(email: string) {
   const list = (process.env.VOICE_ALLOWED_EMAILS ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
   return list.includes('*') || (email !== '' && list.includes(email))
+}
+
+/**
+ * Acesso da conta: plano pago (pelo webhook da plataforma de pagamento, mesmo e-mail) ou time.
+ * Só quem tem acesso cria voz clonada (gasta créditos da ElevenLabs) e ouve as histórias pagas.
+ */
+export async function accountAccess(email: string) {
+  const paid = await activePlan(email)
+  if (paid) return { allowed: true, plan: paid.plan, until: paid.until, source: 'assinatura' as const }
+  if (isTeamEmail(email)) return { allowed: true, plan: 'anual' as const, until: null, source: 'time' as const }
+  return { allowed: false, plan: null, until: null, source: null }
 }
 
 /** Garante que a voz pertence ao usuário. */

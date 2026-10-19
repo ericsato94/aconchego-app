@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { elevenlabs, SETTINGS_VERSION, toSpeech } from './_lib/elevenlabs.js'
-import { json, requireUser, requireVoiceOwner, route } from './_lib/http.js'
+import { accountAccess, json, requireUser, requireVoiceOwner, route } from './_lib/http.js'
 import { HttpError, supabaseAdmin } from './_lib/supabaseAdmin.js'
 
 const MAX_TEXT = 4800
@@ -16,7 +16,10 @@ const SIGNED_URL_SECONDS = 60 * 60
  * Resposta: { audioUrl, duration, starts[] } — starts = segundo em que cada parágrafo começa.
  */
 export const POST = route(async (request) => {
-  const { id: userId } = await requireUser(request)
+  const { id: userId, email } = await requireUser(request)
+  if (!(await accountAccess(email)).allowed) {
+    throw new HttpError(403, 'A narração com a sua voz faz parte dos planos Mensal e Anual.')
+  }
   const body = (await request.json().catch(() => null)) as { voiceId?: string; speed?: number; paragraphs?: unknown } | null
   const voiceId = body?.voiceId ?? ''
   const speed = Number(body?.speed ?? 0.9)
