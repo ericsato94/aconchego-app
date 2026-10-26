@@ -14,6 +14,7 @@ const Library = lazy(() => import('./pages/library/Library'))
 const Favorites = lazy(() => import('./pages/library/Favorites'))
 const StoryPage = lazy(() => import('./pages/story/StoryPage'))
 const Sleep = lazy(() => import('./pages/sleep/Sleep'))
+const CreateStory = lazy(() => import('./pages/create/CreateStory'))
 const Progress = lazy(() => import('./pages/progress/Progress'))
 const Profile = lazy(() => import('./pages/profile/Profile'))
 const RecordVoice = lazy(() => import('./pages/voice/RecordVoice'))
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="/historias/:id" element={<StoryPage />} />
             <Route path="/favoritos" element={<Favorites />} />
             <Route path="/sono" element={<Sleep />} />
+            <Route path="/criar-historia" element={<CreateStory />} />
             <Route path="/progresso" element={<Progress />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/planos" element={<Plans />} />

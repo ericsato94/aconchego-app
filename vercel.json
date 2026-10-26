@@ -2,8 +2,20 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "functions": {
-    "api/narration.ts": { "maxDuration": 120 },
-    "api/voices/index.ts": { "maxDuration": 60 }
+    "api/narration.ts": {
+      "maxDuration": 120
+    },
+    "api/voices/index.ts": {
+      "maxDuration": 60
+    },
+    "api/stories/[action].ts": {
+      "maxDuration": 90
+    }
   },
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

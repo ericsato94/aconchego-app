@@ -87,7 +87,7 @@ export function SettingsModal({ open, onClose }: ModalProps) {
             </button>
           ))}
         </div>
-        <span className="field__hint">Vale para todas as histórias e para o modo hora de dormir.</span>
+        <span className="field__hint">Vale para a narração padrão. A sua voz clonada sempre narra em ritmo natural.</span>
       </div>
     </Modal>
   )

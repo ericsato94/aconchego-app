@@ -4,11 +4,13 @@ import { EmptyState } from '../../components/EmptyState'
 import { Icon } from '../../components/Icon'
 import { StoryCard } from '../../components/StoryCard'
 import { catalog } from '../../services/catalog'
+import { useCustomStories } from '../../services/customStories'
 import { useApp } from '../../store/appContext'
 import './library.css'
 
 const FILTERS = [
   { id: 'todas', label: 'Todas' },
+  { id: 'criadas', label: 'Criadas por mim' },
   { id: 'gratuitas', label: 'Gratuitas' },
   { id: 'favoritas', label: 'Favoritas' },
   { id: 'sono', label: 'Sono' },
@@ -24,6 +26,7 @@ export default function Library() {
   const [params, setParams] = useSearchParams()
   const filter = (params.get('filtro') as FilterId) || 'todas'
   const query = params.get('q') ?? ''
+  const { stories: created } = useCustomStories()
 
   const setParam = (key: string, value: string, fallback: string) => {
     const next = new URLSearchParams(params)
@@ -37,8 +40,10 @@ export default function Library() {
     return catalog.all().filter((s) => {
       if (q && !normalize(`${s.title} ${s.summary}`).includes(q)) return false
       switch (filter) {
+        case 'criadas':
+          return s.custom
         case 'gratuitas':
-          return s.free
+          return s.free && !s.custom
         case 'favoritas':
           return data.favorites.includes(s.id)
         case 'sono':
@@ -49,7 +54,8 @@ export default function Library() {
           return true
       }
     })
-  }, [filter, query, data.favorites, activeChild])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `created` muda o resultado de catalog.all()
+  }, [filter, query, data.favorites, activeChild, created])
 
   return (
     <div className="container page">
@@ -108,17 +114,27 @@ export default function Library() {
         </div>
       ) : (
         <EmptyState
-          icon={filter === 'favoritas' ? 'star' : 'search'}
-          title={filter === 'favoritas' ? 'Nenhuma favorita ainda' : 'Nenhuma história encontrada'}
+          icon={filter === 'favoritas' ? 'star' : filter === 'criadas' ? 'sparkles' : 'search'}
+          title={
+            filter === 'favoritas' ? 'Nenhuma favorita ainda' : filter === 'criadas' ? 'Nenhuma história criada ainda' : 'Nenhuma história encontrada'
+          }
           text={
             filter === 'favoritas'
               ? 'Toque na estrela de uma história para guardá-la aqui.'
-              : 'Tente outra palavra ou limpe os filtros.'
+              : filter === 'criadas'
+                ? 'Conte um tema e a gente escreve uma história só para o seu filho.'
+                : 'Tente outra palavra ou limpe os filtros.'
           }
           action={
-            <button className="btn btn--secondary btn--sm" onClick={() => setParams({}, { replace: true })}>
-              Ver todas
-            </button>
+            filter === 'criadas' ? (
+              <Link to="/criar-historia" className="btn btn--primary btn--sm">
+                Criar história
+              </Link>
+            ) : (
+              <button className="btn btn--secondary btn--sm" onClick={() => setParams({}, { replace: true })}>
+                Ver todas
+              </button>
+            )
           }
         />
       )}

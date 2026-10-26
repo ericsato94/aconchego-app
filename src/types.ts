@@ -106,14 +106,20 @@ export interface CoverArt {
   focus?: string
 }
 
-export interface Story {
+/** Texto de uma história (sem imagem): compartilhado entre o app e o servidor. */
+export interface StoryText {
   id: string
   title: string
   summary: string
   ageRange: [number, number]
   tags: Array<'sono' | 'aventura' | 'amizade' | 'natureza'>
   free: boolean
-  cover: CoverArt
   /** Parágrafos do texto narrado. */
   paragraphs: string[]
+}
+
+export interface Story extends StoryText {
+  cover: CoverArt
+  /** Criada por IA para esta família (não faz parte do catálogo). */
+  custom?: boolean
 }

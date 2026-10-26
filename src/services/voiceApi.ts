@@ -4,6 +4,7 @@
  */
 export class VoiceApiError extends Error {}
 
+import type { GreetingKind } from '../data/greetings'
 import { accessToken } from './supabase'
 
 let health: Promise<VoiceStatus> | null = null
@@ -20,6 +21,9 @@ export interface AccountAccess {
   until: string | null
   source: 'assinatura' | 'time' | null
 }
+
+/** O que narrar: o servidor busca o texto (história do catálogo, criada pela família, ou saudação). */
+export type NarrationRef = { storyId: string } | { greeting: { kind: GreetingKind; childName?: string } }
 
 export interface NarrationMeta {
   audioUrl: string
@@ -80,11 +84,11 @@ export const voiceApi = {
     await request('/api/voices/' + encodeURIComponent(voiceId), { method: 'DELETE' })
   },
 
-  /** Gera (ou busca no cache) a narração de um texto inteiro com a voz clonada. */
-  narration: (voiceId: string, speed: number, paragraphs: string[]) =>
+  /** Gera (ou busca no cache) a narração com a voz clonada, em velocidade normal. */
+  narration: (voiceId: string, ref: NarrationRef) =>
     request<NarrationMeta>('/api/narration', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ voiceId, speed, paragraphs }),
+      body: JSON.stringify({ voiceId, ...ref }),
     }),
 }

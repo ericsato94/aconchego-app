@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import lionReading from '../../assets/lion-reading.webp'
 import { Icon } from '../../components/Icon'
+import { greetingText, isChildName } from '../../data/greetings'
 import { narrator } from '../../services/narrator'
 import { useApp } from '../../store/appContext'
 import { usePlayer } from '../../store/playerContext'
@@ -21,10 +22,11 @@ export function VoiceHero() {
 
   const listen = () => {
     player.pause()
-    narrator.say(
-      `Oi${activeChild ? `, ${activeChild.name}` : ''}! Esta é a minha voz. Hoje à noite, eu vou te contar uma história.`,
-      { rate: data.settings.narrationRate, voiceId: voice.voiceId },
-    )
+    const childName = activeChild && isChildName(activeChild.name) ? activeChild.name : undefined
+    narrator.say(greetingText('hero', childName), {
+      rate: data.settings.narrationRate,
+      cloud: voice.voiceId ? { voiceId: voice.voiceId, ref: { greeting: { kind: 'hero', childName } } } : undefined,
+    })
   }
 
   let content

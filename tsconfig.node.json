@@ -16,5 +16,5 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["vite.config.ts", "vite.api-dev.ts", "src/config/app.ts", "api"]
+  "include": ["vite.config.ts", "vite.api-dev.ts", "src/config/app.ts", "src/data/storyTexts.ts", "src/data/greetings.ts", "src/types.ts", "api"]
 }

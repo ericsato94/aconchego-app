@@ -1,11 +1,12 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BackButton } from '../../components/BackButton'
 import { EmptyState } from '../../components/EmptyState'
 import { Icon } from '../../components/Icon'
 import { StoryCover } from '../../components/StoryCover'
 import { clock } from '../../lib/format'
 import { catalog, estimateSeconds, storyMinutes, stripCues } from '../../services/catalog'
+import { customStories, useCustomStories } from '../../services/customStories'
 import { useApp } from '../../store/appContext'
 import { usePlayer } from '../../store/playerContext'
 import { useToast } from '../../store/toastContext'
@@ -15,6 +16,7 @@ const TAG_LABEL = { sono: 'Para dormir', aventura: 'Aventura', amizade: 'Amizade
 
 export default function StoryPage() {
   const { id = '' } = useParams()
+  const { loaded } = useCustomStories()
   const story = catalog.byId(id)
   const { data, actions } = useApp()
   const player = usePlayer()
@@ -32,6 +34,10 @@ export default function StoryPage() {
       ?.querySelector(`[data-index="${position}"]`)
       ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [playing, position])
+
+  if (!story && id.startsWith('custom:') && !loaded) {
+    return <div className="page-loading" role="status" aria-label="Carregando" />
+  }
 
   if (!story) {
     return (
@@ -154,6 +160,7 @@ export default function StoryPage() {
           <div className="card story__about">
             <h2 className="section-title">Sobre a história</h2>
             <p>{story.summary}</p>
+            {story.custom && <CustomActions storyId={story.id} />}
           </div>
           {!locked && (
             <div className="card story__text">
@@ -171,6 +178,77 @@ export default function StoryPage() {
           )}
         </section>
       </div>
+    </div>
+  )
+}
+
+/** História criada por IA: os pais podem denunciar um problema ou apagar. */
+function CustomActions({ storyId }: { storyId: string }) {
+  const navigate = useNavigate()
+  const player = usePlayer()
+  const toast = useToast()
+  const [reporting, setReporting] = useState(false)
+  const [reason, setReason] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const report = async () => {
+    setBusy(true)
+    try {
+      await customStories.report(storyId, reason)
+      toast('Obrigado! Vamos revisar esta história.', 'success')
+      setReporting(false)
+    } catch {
+      toast('Não foi possível enviar agora. Tente de novo.', 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async () => {
+    if (!confirmDelete) return setConfirmDelete(true)
+    setBusy(true)
+    try {
+      if (player.storyId === storyId) player.stop()
+      await customStories.remove(storyId)
+      toast('História apagada')
+      navigate('/historias?filtro=criadas', { replace: true })
+    } catch {
+      toast('Não foi possível apagar agora. Tente de novo.', 'error')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="story__custom">
+      <p className="story__custom-note">
+        <Icon name="sparkles" size={16} /> Criada para a sua família
+      </p>
+      {reporting ? (
+        <div className="story__report">
+          <label className="field">
+            <span className="field__label">O que não ficou bom?</span>
+            <textarea className="input" rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
+          </label>
+          <div className="story__custom-actions">
+            <button className="btn btn--ghost btn--sm" onClick={() => setReporting(false)} disabled={busy}>
+              Cancelar
+            </button>
+            <button className="btn btn--primary btn--sm" onClick={report} disabled={busy}>
+              Enviar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="story__custom-actions">
+          <button className="btn btn--ghost btn--sm" onClick={() => setReporting(true)}>
+            <Icon name="shieldInfo" size={18} /> Denunciar
+          </button>
+          <button className="btn btn--danger-outline btn--sm" onClick={remove} disabled={busy}>
+            <Icon name="trash" size={18} /> {confirmDelete ? 'Confirmar' : 'Apagar'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { AppNotification, Child, UserData } from '../types'
 import { VOICE } from '../config/app'
 import { authService, toUser } from '../services/auth'
+import { customStories } from '../services/customStories'
 import { recordingsService } from '../services/recordings'
 import { uid } from '../services/storage'
 import { supabase } from '../services/supabase'
@@ -62,6 +63,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const enter = useCallback(async (u: User, seed?: () => UserData) => {
     userRef.current = u
     voiceApi.reset()
+    customStories.reset()
+    customStories.load()
     const cached = userDataRepo.cached(u.id)
     // Sem cópia local: espera os dados da nuvem antes de liberar as rotas (evita pedir o consentimento de novo).
     if (cached) setData(cached)
@@ -96,6 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const leave = useCallback(() => {
     userRef.current = null
     voiceApi.reset()
+    customStories.reset()
     setUser(null)
     setData(defaultUserData())
   }, [])

@@ -1,5 +1,5 @@
 import { estimateSeconds, stripCues } from './catalog'
-import { voiceApi, type NarrationMeta } from './voiceApi'
+import { voiceApi, type NarrationMeta, type NarrationRef } from './voiceApi'
 
 /**
  * Narração das histórias.
@@ -11,8 +11,8 @@ export interface SpeakOptions {
   rate?: number
   volume?: number
   pitch?: number
-  /** Voz clonada na ElevenLabs. */
-  voiceId?: string
+  /** Voz clonada na ElevenLabs e o que ela vai narrar (sempre em velocidade normal). */
+  cloud?: { voiceId: string; ref: NarrationRef }
   onIndex?: (index: number) => void
   onEnd?: () => void
   /** true enquanto a narração com a voz clonada está sendo gerada (só na primeira vez de cada história). */
@@ -31,9 +31,6 @@ const LEAD_IN_S = 0.3
 /** Recuo ao retomar um parágrafo, para não começar no meio de uma respiração. */
 const RESUME_BACKOFF_S = 0.15
 const MAX_CACHED = 12
-
-/** Converte a velocidade escolhida no app (0,8 / 0,95 / 1,1) para a da ElevenLabs (≈ 0,76 / 0,9 / 1,05). */
-const cloudSpeed = (rate: number) => Math.min(1.2, Math.max(0.7, Math.round(rate * 0.95 * 100) / 100))
 
 function pickVoice(): SpeechSynthesisVoice | undefined {
   const voices = synth?.getVoices() ?? []
@@ -93,12 +90,12 @@ class Narrator {
   }
 
   /** Gera/baixa (uma vez) a narração do texto inteiro e decodifica o áudio. */
-  private narration(voiceId: string, speed: number, texts: string[]) {
+  private narration(voiceId: string, ref: NarrationRef) {
     const ctx = this.ctx!
-    const key = `${voiceId}\n${speed}\n${texts.join('\n')}`
+    const key = `${voiceId}\n${JSON.stringify(ref)}`
     let item = this.narrations.get(key)
     if (!item) {
-      item = voiceApi.narration(voiceId, speed, texts).then(async (meta) => {
+      item = voiceApi.narration(voiceId, ref).then(async (meta) => {
         const res = await fetch(meta.audioUrl)
         if (!res.ok) throw new Error(`audio ${res.status}`)
         return { meta, buffer: await ctx.decodeAudioData(await res.arrayBuffer()) }
@@ -124,8 +121,8 @@ class Narrator {
       this.playDevice(texts[index], rate, opts.pitch, run, () => deviceFrom(index + 1))
     }
 
-    if (opts.voiceId && this.audioContext()) {
-      this.playCloud(texts, from, opts.voiceId, cloudSpeed(rate), run, opts, () => deviceFrom(from))
+    if (opts.cloud && this.audioContext()) {
+      this.playCloud(from, opts.cloud.voiceId, opts.cloud.ref, run, opts, () => deviceFrom(from))
     } else {
       deviceFrom(from)
     }
@@ -133,16 +130,15 @@ class Narrator {
 
   /** Toca a história inteira de uma vez, acompanhando o parágrafo atual pelas marcações de tempo. */
   private playCloud(
-    texts: string[],
     from: number,
     voiceId: string,
-    speed: number,
+    ref: NarrationRef,
     run: number,
     opts: SpeakOptions,
     fallback: () => void,
   ) {
     const loadingTimer = window.setTimeout(() => run === this.runId && opts.onLoading?.(true), 300)
-    this.narration(voiceId, speed, texts)
+    this.narration(voiceId, ref)
       .then(({ meta, buffer }) => {
         window.clearTimeout(loadingTimer)
         opts.onLoading?.(false)

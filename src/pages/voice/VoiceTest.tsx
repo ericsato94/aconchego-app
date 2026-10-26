@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import lionReading from '../../assets/lion-reading.webp'
 import { Icon } from '../../components/Icon'
+import { greetingText, isChildName } from '../../data/greetings'
 import { narrator } from '../../services/narrator'
 import { recordingsService } from '../../services/recordings'
 import { useApp } from '../../store/appContext'
@@ -45,10 +46,13 @@ export default function VoiceTest() {
       return
     }
     setSpeaking(true)
-    narrator.say(
-      `Oi${activeChild ? `, ${activeChild.name}` : ''}! Sou eu. A partir de hoje, vou contar histórias para você todas as noites.`,
-      { rate: data.settings.narrationRate, voiceId: data.voice.voiceId, onEnd: () => setSpeaking(false) },
-    )
+    const childName = activeChild && isChildName(activeChild.name) ? activeChild.name : undefined
+    const { voiceId } = data.voice
+    narrator.say(greetingText('test', childName), {
+      rate: data.settings.narrationRate,
+      cloud: voiceId ? { voiceId, ref: { greeting: { kind: 'test', childName } } } : undefined,
+      onEnd: () => setSpeaking(false),
+    })
   }
 
   const playOriginal = () => {

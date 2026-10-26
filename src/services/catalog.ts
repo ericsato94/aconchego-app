@@ -1,11 +1,12 @@
 import { STORIES } from '../data/stories'
 import type { PlanId, Story } from '../types'
+import { customStories } from './customStories'
 
-/** Acesso ao catálogo. Em produção: buscar da API e cachear. */
+/** Acesso ao catálogo + histórias criadas pela família (use `useCustomStories` para re-renderizar). */
 export const catalog = {
-  all: (): Story[] => STORIES,
-  byId: (id: string) => STORIES.find((s) => s.id === id),
-  free: () => STORIES.filter((s) => s.free),
+  all: (): Story[] => [...customStories.all(), ...STORIES],
+  byId: (id: string) => (id.startsWith('custom:') ? customStories.byId(id) : STORIES.find((s) => s.id === id)),
+  free: () => [...customStories.all(), ...STORIES.filter((s) => s.free)],
   canAccess: (story: Story, plan: PlanId) => story.free || plan !== 'free',
 }
 

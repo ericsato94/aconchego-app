@@ -458,3 +458,61 @@
     max-width: 260px;
   }
 }
+
+/* ---------- Criar história ---------- */
+
+.create-promo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--sh-sm);
+  color: var(--c-text);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.create-promo:hover {
+  box-shadow: var(--sh-md);
+}
+
+.create-promo:active {
+  transform: scale(0.99);
+}
+
+.create-promo__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary-strong);
+}
+
+.create-promo__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.create-promo__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--c-navy);
+}
+
+.create-promo__text {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.create-promo__chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--c-primary);
+}

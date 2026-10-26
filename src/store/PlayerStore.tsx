@@ -34,9 +34,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const start = from >= total ? 0 : from
       listenStart.current = Date.now()
       setState((s) => ({ ...s, storyId, status: 'playing', position: start, total, loading: false }))
+      const { voice } = ctx.current.data
       narrator.speak(story.paragraphs, start, {
         rate: ctx.current.data.settings.narrationRate,
-        voiceId: ctx.current.data.voice.status === 'ready' ? ctx.current.data.voice.voiceId : undefined,
+        cloud: voice.status === 'ready' && voice.voiceId ? { voiceId: voice.voiceId, ref: { storyId } } : undefined,
         volume: sleep && !sleep.finished ? sleep.volume : 1,
         onLoading: (loading) => setState((s) => ({ ...s, loading })),
         onIndex: (index) => {

@@ -5,9 +5,11 @@ import { Icon } from '../../components/Icon'
 import { StoryCard } from '../../components/StoryCard'
 import { firstName } from '../../lib/format'
 import { catalog } from '../../services/catalog'
+import { useCustomStories } from '../../services/customStories'
 import { useApp } from '../../store/appContext'
 import { NotificationsPanel } from '../notifications/NotificationsPanel'
 import { ContinueCard } from './ContinueCard'
+import { CreatePromo } from './CreatePromo'
 import { ProgressSummary } from './ProgressSummary'
 import { SleepPromo } from './SleepPromo'
 import { VoiceHero } from './VoiceHero'
@@ -16,6 +18,7 @@ import './home.css'
 export default function Home() {
   const { user, data } = useApp()
   const [notifOpen, setNotifOpen] = useState(false)
+  useCustomStories()
   const unread = data.notifications.some((n) => !n.read)
 
   const inProgress = Object.entries(data.progress)
@@ -43,6 +46,7 @@ export default function Home() {
       <div className="home__grid">
         <div className="home__main">
           <VoiceHero />
+          <CreatePromo />
 
           {inProgress && (
             <section className="section">
