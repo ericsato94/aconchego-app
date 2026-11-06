@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { DEFAULT_NARRATIONS } from '../data/defaultNarrations'
 import { catalog } from '../services/catalog'
 import { narrator } from '../services/narrator'
+import type { NarrationMeta } from '../services/voiceApi'
 import { useApp } from './appContext'
 import { PlayerContext, type PlayerApi, type PlayerState } from './playerContext'
 
 const FADE_SECONDS = 45
+
+/** Narração padrão já gravada da história do catálogo (para quem não tem voz clonada). */
+function defaultNarration(storyId: string): NarrationMeta | undefined {
+  const entry = DEFAULT_NARRATIONS[storyId]
+  return entry && { audioUrl: entry.file, duration: entry.duration, starts: entry.starts }
+}
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const { data, actions } = useApp()
@@ -38,6 +46,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       narrator.speak(story.paragraphs, start, {
         rate: ctx.current.data.settings.narrationRate,
         cloud: voice.status === 'ready' && voice.voiceId ? { voiceId: voice.voiceId, ref: { storyId } } : undefined,
+        preset: defaultNarration(storyId),
         volume: sleep && !sleep.finished ? sleep.volume : 1,
         onLoading: (loading) => setState((s) => ({ ...s, loading })),
         onIndex: (index) => {
