@@ -11,7 +11,11 @@ export function MiniPlayer() {
   const { pathname } = useLocation()
   const story = player.storyId ? catalog.byId(player.storyId) : undefined
   if (!story || player.status === 'idle' || player.sleep || pathname === `/historias/${story.id}`) return null
-  const pct = player.total ? ((player.position + (player.status === 'playing' ? 0.5 : 0)) / player.total) * 100 : 0
+  const pct = player.duration
+    ? ((player.elapsed ?? 0) / player.duration) * 100
+    : player.total
+      ? ((player.position + (player.status === 'playing' ? 0.5 : 0)) / player.total) * 100
+      : 0
 
   return (
     <div className="mini-player" role="region" aria-label="Reprodução atual">

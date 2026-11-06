@@ -17,6 +17,9 @@ export interface PlayerState {
   total: number
   /** Narração com a voz clonada sendo gerada (primeira vez de cada história). */
   loading?: boolean
+  /** Tempo real do áudio (s) e duração total — só quando a narração é um áudio pronto. */
+  elapsed?: number
+  duration?: number
   sleep?: SleepSession
 }
 
@@ -25,6 +28,8 @@ export interface PlayerApi extends PlayerState {
   toggle(): void
   pause(): void
   seek(position: number): void
+  /** Pula para um segundo exato do áudio (linha do tempo). */
+  seekTime(seconds: number): void
   stop(): void
   startSleep(storyId: string, minutes: number, volume: number, autoNext: boolean): void
   endSleep(): void

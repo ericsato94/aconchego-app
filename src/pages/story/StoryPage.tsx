@@ -4,6 +4,7 @@ import { BackButton } from '../../components/BackButton'
 import { EmptyState } from '../../components/EmptyState'
 import { Icon } from '../../components/Icon'
 import { StoryCover } from '../../components/StoryCover'
+import { DEFAULT_NARRATIONS } from '../../data/defaultNarrations'
 import { clock } from '../../lib/format'
 import { catalog, estimateSeconds, storyMinutes, stripCues } from '../../services/catalog'
 import { customStories, useCustomStories } from '../../services/customStories'
@@ -22,6 +23,8 @@ export default function StoryPage() {
   const player = usePlayer()
   const toast = useToast()
   const textRef = useRef<HTMLOListElement>(null)
+  /** Valor da linha do tempo enquanto o dedo arrasta (só aplica ao soltar). */
+  const [drag, setDrag] = useState<number | null>(null)
 
   const isCurrent = player.storyId === id && player.status !== 'idle'
   const saved = data.progress[id]
@@ -54,10 +57,29 @@ export default function StoryPage() {
 
   const locked = !catalog.canAccess(story, data.plan)
   const favorite = data.favorites.includes(story.id)
-  const times = story.paragraphs.map(estimateSeconds)
-  const totalSeconds = times.reduce((a, b) => a + b, 0)
-  const elapsed = times.slice(0, position).reduce((a, b) => a + b, 0)
   const total = story.paragraphs.length
+  // Linha do tempo: tempo real do áudio quando a narração é um áudio pronto; senão, estimativa por parágrafo.
+  const preset = data.voice.status === 'ready' && data.voice.voiceId ? undefined : DEFAULT_NARRATIONS[story.id]
+  const audio =
+    isCurrent && player.duration !== undefined
+      ? { elapsed: player.elapsed ?? 0, duration: player.duration }
+      : preset && !isCurrent
+        ? { elapsed: preset.starts[position] ?? 0, duration: preset.duration }
+        : null
+  const times = story.paragraphs.map(estimateSeconds)
+  const totalSeconds = audio ? audio.duration : times.reduce((a, b) => a + b, 0)
+  const elapsed = audio ? (drag ?? audio.elapsed) : times.slice(0, position).reduce((a, b) => a + b, 0)
+  const timeline = audio ? elapsed / Math.max(1, totalSeconds) : position / Math.max(1, total - 1)
+  const commitDrag = () => {
+    if (drag === null || !audio) return
+    if (isCurrent) player.seekTime(drag)
+    else {
+      let index = 0
+      while (preset && index + 1 < preset.starts.length && drag >= preset.starts[index + 1]) index++
+      player.play(story.id, index)
+    }
+    setDrag(null)
+  }
 
   const togglePlay = () => (isCurrent ? player.toggle() : player.play(story.id))
   const seek = (to: number) => (isCurrent ? player.seek(to) : player.play(story.id, Math.max(0, Math.min(total - 1, to))))
@@ -111,18 +133,36 @@ export default function StoryPage() {
               </p>
 
               <div className="story__timeline">
-                <input
-                  type="range"
-                  className="range"
-                  min={0}
-                  max={total - 1}
-                  step={1}
-                  value={Math.min(position, total - 1)}
-                  onChange={(e) => seek(Number(e.target.value))}
-                  aria-label="Trecho da história"
-                  aria-valuetext={`Trecho ${position + 1} de ${total}`}
-                  style={{ '--pct': `${(position / Math.max(1, total - 1)) * 100}%` } as CSSProperties}
-                />
+                {audio ? (
+                  <input
+                    type="range"
+                    className="range"
+                    min={0}
+                    max={Math.max(1, Math.floor(totalSeconds))}
+                    step={1}
+                    value={Math.min(elapsed, totalSeconds)}
+                    onChange={(e) => setDrag(Number(e.target.value))}
+                    onPointerUp={commitDrag}
+                    onKeyUp={commitDrag}
+                    onBlur={commitDrag}
+                    aria-label="Linha do tempo da narração"
+                    aria-valuetext={`${clock(elapsed)} de ${clock(totalSeconds)}`}
+                    style={{ '--pct': `${timeline * 100}%` } as CSSProperties}
+                  />
+                ) : (
+                  <input
+                    type="range"
+                    className="range"
+                    min={0}
+                    max={total - 1}
+                    step={1}
+                    value={Math.min(position, total - 1)}
+                    onChange={(e) => seek(Number(e.target.value))}
+                    aria-label="Trecho da história"
+                    aria-valuetext={`Trecho ${position + 1} de ${total}`}
+                    style={{ '--pct': `${timeline * 100}%` } as CSSProperties}
+                  />
+                )}
                 <div className="story__times">
                   <span>{clock(elapsed)}</span>
                   <span>{clock(totalSeconds)}</span>

@@ -19,6 +19,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PlayerState>({ status: 'idle', position: 0, total: 0 })
   const stateRef = useRef(state)
   const listenStart = useRef<number | null>(null)
+  /** Marcações de tempo do áudio da história atual (para a linha do tempo com o player pausado). */
+  const timing = useRef<{ storyId: string; starts: number[]; duration: number } | null>(null)
   const ctx = useRef({ data, actions })
   useEffect(() => {
     stateRef.current = state
@@ -34,19 +36,39 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const speakFrom = useCallback(
-    function speakFrom(storyId: string, from: number) {
+    function speakFrom(storyId: string, from: number, startSeconds?: number) {
       const story = catalog.byId(storyId)
       if (!story) return
       const total = story.paragraphs.length
       const sleep = stateRef.current.sleep
       const start = from >= total ? 0 : from
       listenStart.current = Date.now()
-      setState((s) => ({ ...s, storyId, status: 'playing', position: start, total, loading: false }))
       const { voice } = ctx.current.data
+      const cloud = voice.status === 'ready' && voice.voiceId ? { voiceId: voice.voiceId, ref: { storyId } } : undefined
+      const preset = defaultNarration(storyId)
+      if (timing.current?.storyId !== storyId) {
+        timing.current = !cloud && preset ? { storyId, starts: preset.starts, duration: preset.duration } : null
+      }
+      const known = timing.current
+      setState((s) => ({
+        ...s,
+        storyId,
+        status: 'playing',
+        position: start,
+        total,
+        loading: false,
+        elapsed: known ? (startSeconds ?? known.starts[start] ?? 0) : undefined,
+        duration: known?.duration,
+      }))
       narrator.speak(story.paragraphs, start, {
         rate: ctx.current.data.settings.narrationRate,
-        cloud: voice.status === 'ready' && voice.voiceId ? { voiceId: voice.voiceId, ref: { storyId } } : undefined,
-        preset: defaultNarration(storyId),
+        cloud,
+        preset,
+        startSeconds,
+        onTime: (elapsed, duration, starts) => {
+          timing.current = { storyId, starts, duration }
+          setState((s) => (s.storyId === storyId ? { ...s, elapsed, duration } : s))
+        },
         volume: sleep && !sleep.finished ? sleep.volume : 1,
         onLoading: (loading) => setState((s) => ({ ...s, loading })),
         onIndex: (index) => {
@@ -63,7 +85,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             speakFrom(nextStory.id, 0)
             return
           }
-          setState((s) => ({ ...s, status: 'paused', position: 0 }))
+          setState((s) => ({ ...s, status: 'paused', position: 0, elapsed: s.duration !== undefined ? 0 : undefined }))
         },
       })
     },
@@ -97,10 +119,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   )
 
   const toggle = useCallback(() => {
-    const { status, storyId, position } = stateRef.current
+    const { status, storyId, position, elapsed } = stateRef.current
     if (!storyId) return
     if (status === 'playing') pause()
-    else speakFrom(storyId, position)
+    // Com áudio pronto, retoma do segundo exato em que parou.
+    else speakFrom(storyId, position, timing.current?.storyId === storyId ? elapsed : undefined)
   }, [pause, speakFrom])
 
   const seek = useCallback(
@@ -113,8 +136,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         commitListen()
         speakFrom(storyId, clamped)
       } else {
-        setState((s) => ({ ...s, position: clamped }))
+        const t = timing.current?.storyId === storyId ? timing.current : null
+        setState((s) => ({ ...s, position: clamped, elapsed: t ? (t.starts[clamped] ?? 0) : s.elapsed }))
         ctx.current.actions.saveProgress(storyId, clamped, total)
+      }
+    },
+    [commitListen, speakFrom],
+  )
+
+  const seekTime = useCallback(
+    (seconds: number) => {
+      const { storyId, status, total } = stateRef.current
+      const t = timing.current
+      if (!storyId || !t || t.storyId !== storyId) return
+      const clamped = Math.max(0, Math.min(t.duration, seconds))
+      let index = 0
+      while (index + 1 < t.starts.length && clamped >= t.starts[index + 1]) index++
+      if (status === 'playing') {
+        narrator.stop()
+        commitListen()
+        speakFrom(storyId, index, clamped)
+      } else {
+        setState((s) => ({ ...s, position: index, elapsed: clamped }))
+        ctx.current.actions.saveProgress(storyId, index, total)
       }
     },
     [commitListen, speakFrom],
@@ -159,8 +203,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   useEffect(() => () => narrator.stop(), [])
 
   const api = useMemo<PlayerApi>(
-    () => ({ ...state, play, toggle, pause, seek, stop, startSleep, endSleep }),
-    [state, play, toggle, pause, seek, stop, startSleep, endSleep],
+    () => ({ ...state, play, toggle, pause, seek, seekTime, stop, startSleep, endSleep }),
+    [state, play, toggle, pause, seek, seekTime, stop, startSleep, endSleep],
   )
 
   return <PlayerContext.Provider value={api}>{children}</PlayerContext.Provider>

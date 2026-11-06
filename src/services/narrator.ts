@@ -16,7 +16,11 @@ export interface SpeakOptions {
   cloud?: { voiceId: string; ref: NarrationRef }
   /** Narração padrão pronta (arquivo estático do app), usada quando não há voz clonada. */
   preset?: NarrationMeta
+  /** Começa neste segundo do áudio (em vez do início do parágrafo `from`). Só vale para áudio pronto. */
+  startSeconds?: number
   onIndex?: (index: number) => void
+  /** Tempo real do áudio tocando (s) e a duração total. Não é chamado na voz do aparelho. */
+  onTime?: (seconds: number, duration: number, starts: number[]) => void
   onEnd?: () => void
   /** true enquanto a narração com a voz clonada está sendo gerada (só na primeira vez de cada história). */
   onLoading?: (loading: boolean) => void
@@ -151,32 +155,43 @@ class Narrator {
         const ctx = this.ctx
         if (run !== this.runId || !ctx || !this.gain) return
 
-        const offset = Math.max(0, (meta.starts[from] ?? 0) - (from > 0 ? RESUME_BACKOFF_S : 0))
+        const duration = meta.duration || buffer.duration
+        const offset =
+          opts.startSeconds !== undefined
+            ? Math.max(0, Math.min(opts.startSeconds, duration - 0.5))
+            : Math.max(0, (meta.starts[from] ?? 0) - (from > 0 ? RESUME_BACKOFF_S : 0))
         const source = ctx.createBufferSource()
         source.buffer = buffer
         source.connect(this.gain)
         source.onended = () => {
           if (run !== this.runId) return
           window.clearInterval(this.tracker)
+          opts.onTime?.(duration, duration, meta.starts)
           opts.onEnd?.()
         }
         this.source = source
         const startAt = ctx.currentTime + LEAD_IN_S
         source.start(startAt, offset)
 
-        // Acompanha o parágrafo que está sendo falado (destaque, progresso e retomada).
-        let current = from
-        opts.onIndex?.(from)
+        // Acompanha o parágrafo que está sendo falado (destaque, progresso e retomada) e o tempo real.
+        const indexAt = (seconds: number) => {
+          let index = 0
+          while (index + 1 < meta.starts.length && seconds >= meta.starts[index + 1]) index++
+          return index
+        }
+        let current = opts.startSeconds !== undefined ? indexAt(offset) : from
+        opts.onIndex?.(current)
+        opts.onTime?.(offset, duration, meta.starts)
         this.tracker = window.setInterval(() => {
           if (run !== this.runId) return
-          const position = offset + (ctx.currentTime - startAt)
-          let index = current
-          while (index + 1 < meta.starts.length && position >= meta.starts[index + 1]) index++
+          const position = Math.min(duration, offset + Math.max(0, ctx.currentTime - startAt))
+          opts.onTime?.(position, duration, meta.starts)
+          const index = indexAt(position)
           if (index !== current) {
             current = index
             opts.onIndex?.(index)
           }
-        }, 200)
+        }, 250)
       })
       .catch(() => {
         window.clearTimeout(loadingTimer)
