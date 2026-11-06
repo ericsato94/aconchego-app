@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', '01. Identidade Visual', '02. Funcionalidades', '03. Telas'] },
+  { ignores: ['dist', 'dev-dist', '01. Identidade Visual', '02. Funcionalidades', '03. Telas', 'criativos', 'amostras-voz'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
