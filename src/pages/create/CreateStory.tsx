@@ -182,7 +182,7 @@ export default function CreateStory() {
             </p>
           )}
 
-          <button type="submit" className="btn btn--primary btn--block" disabled={!loaded || about.trim().length < 3}>
+          <button type="submit" className="btn btn--primary create__submit" disabled={!loaded || about.trim().length < 3}>
             <Icon name="sparkles" size={20} />
             Criar história
           </button>

@@ -26,17 +26,77 @@
 
 .create__form,
 .create__limit {
+  --card-pad: var(--sp-5);
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
   max-width: 640px;
   width: 100%;
+  padding: var(--card-pad);
+  /* Fileiras de ideias rolam até a borda do card, recortadas pelo canto arredondado. */
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .create__form,
+  .create__limit {
+    --card-pad: var(--sp-8);
+  }
 }
 
 .create__about {
-  min-height: 96px;
+  min-height: 112px;
+  padding: var(--sp-3) var(--sp-4);
   resize: vertical;
   line-height: 1.45;
+}
+
+/* Chips desta tela (independentes do CSS da biblioteca, que pode não estar carregado). */
+.create__form .chips {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* Ideias: uma fileira que rola de borda a borda do card (não da tela). */
+.create__form .create__ideas {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(var(--card-pad) * -1);
+  padding: 2px var(--card-pad);
+  scroll-padding-inline: var(--card-pad);
+}
+
+.create__form .create__ideas::-webkit-scrollbar {
+  display: none;
+}
+
+.create__form .create__ideas .chip {
+  flex-shrink: 0;
+}
+
+/* Clima: poucas opções, em grade (2×2 no celular, 4 lado a lado em telas maiores). */
+.create__fieldset .chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 2px 0;
+}
+
+@media (min-width: 480px) {
+  .create__fieldset .chips {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.create__fieldset .chip {
+  justify-content: center;
+}
+
+.create__submit {
+  align-self: center;
+  width: 100%;
+  max-width: 360px;
+  margin-top: var(--sp-1);
 }
 
 .create__count {
@@ -83,7 +143,11 @@
   display: flex;
   gap: var(--sp-2);
   align-items: flex-start;
+  margin-top: calc(var(--sp-1) * -1);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
   font-size: var(--fs-xs);
+  line-height: 1.5;
   color: var(--c-text-muted);
 }
 
