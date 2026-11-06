@@ -28,6 +28,7 @@ const MAX_ABOUT = 300
 
 function usageText(u: StoryUsage) {
   if (u.plan === 'gratis') return 'Disponível nos planos Mensal e Anual'
+  if (u.plan === 'ilimitado') return 'Conta de testes · histórias ilimitadas'
   const left = Math.max(0, u.limit - u.used)
   return `${left} de ${u.limit} histórias disponíveis neste mês · até ${u.dayLimit} por dia`
 }

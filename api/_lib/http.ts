@@ -1,5 +1,5 @@
 import { ElevenLabsError } from './elevenlabs.js'
-import { activePlan } from './entitlements.js'
+import { activePlan, UNLIMITED_PLAN } from './entitlements.js'
 import { HttpError, supabaseAdmin } from './supabaseAdmin.js'
 
 export const json = (body: unknown, status = 200) =>
@@ -45,6 +45,8 @@ export function isTeamEmail(email: string) {
  */
 export async function accountAccess(email: string) {
   const paid = await activePlan(email)
+  // Para o app, a conta ilimitada é um plano Anual (todos os recursos); o limite de histórias some no servidor.
+  if (paid?.plan === UNLIMITED_PLAN) return { allowed: true, plan: 'anual' as const, until: null, source: 'ilimitado' as const }
   if (paid) return { allowed: true, plan: paid.plan, until: paid.until, source: 'assinatura' as const }
   if (isTeamEmail(email)) return { allowed: true, plan: 'anual' as const, until: null, source: 'time' as const }
   return { allowed: false, plan: null, until: null, source: null }

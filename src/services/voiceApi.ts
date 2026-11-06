@@ -19,7 +19,7 @@ export interface AccountAccess {
   allowed: boolean
   plan: 'mensal' | 'anual' | null
   until: string | null
-  source: 'assinatura' | 'time' | null
+  source: 'assinatura' | 'time' | 'ilimitado' | null
 }
 
 /** O que narrar: o servidor busca o texto (história do catálogo, criada pela família, ou saudação). */

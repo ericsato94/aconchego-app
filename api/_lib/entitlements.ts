@@ -5,6 +5,8 @@ import { supabaseAdmin } from './supabaseAdmin.js'
  * Liberam a voz clonada e as histórias pagas para a conta do app com o mesmo e-mail.
  */
 export type PaidPlan = 'mensal' | 'anual'
+/** Conta liberada manualmente (dono/testes): tudo do plano pago, sem limite de histórias. Gravada direto no banco. */
+export const UNLIMITED_PLAN = 'ilimitado'
 
 /** Dias extras depois do vencimento, para a renovação ter tempo de chegar. */
 const GRACE_DAYS = 3
@@ -30,6 +32,8 @@ export async function applyPaymentEvent(event: string, email: string, plan: Paid
   if (TEST_EMAIL.test(email)) return 'teste ignorado'
   const admin = supabaseAdmin()
   const { data: current } = await admin.from('entitlements').select('*').eq('email', email).maybeSingle()
+  // Conta liberada manualmente: eventos de pagamento não alteram.
+  if (current?.plan === UNLIMITED_PLAN) return 'ignorado (conta ilimitada)'
   const now = new Date()
 
   if (ACTIVATE.has(event)) {
@@ -72,7 +76,7 @@ export async function applyPaymentEvent(event: string, email: string, plan: Paid
 }
 
 /** Plano pago em vigor para o e-mail (ou null). */
-export async function activePlan(email: string): Promise<{ plan: PaidPlan; until: string } | null> {
+export async function activePlan(email: string): Promise<{ plan: PaidPlan | typeof UNLIMITED_PLAN; until: string } | null> {
   if (!email) return null
   const { data } = await supabaseAdmin()
     .from('entitlements')
@@ -80,5 +84,6 @@ export async function activePlan(email: string): Promise<{ plan: PaidPlan; until
     .eq('email', email.toLowerCase())
     .maybeSingle()
   if (!data || data.status === 'revoked' || new Date(data.current_period_end) <= new Date()) return null
-  return { plan: (data.plan as PaidPlan) ?? 'mensal', until: data.current_period_end }
+  const plan = data.plan === UNLIMITED_PLAN ? UNLIMITED_PLAN : ((data.plan as PaidPlan | null) ?? 'mensal')
+  return { plan, until: data.current_period_end }
 }

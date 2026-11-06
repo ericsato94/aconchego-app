@@ -11,7 +11,7 @@ import { accessToken } from './supabase'
 export type StoryMood = 'calma' | 'aventura' | 'divertida' | 'amizade'
 
 export interface StoryUsage {
-  plan: 'gratis' | 'mensal' | 'anual' | 'time'
+  plan: 'gratis' | 'mensal' | 'anual' | 'time' | 'ilimitado'
   used: number
   limit: number
   period: 'total' | 'mes'

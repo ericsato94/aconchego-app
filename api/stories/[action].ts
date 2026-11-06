@@ -15,6 +15,7 @@ const STORY_FIELDS = 'id, title, summary, paragraphs, mood, request, created_at'
 async function planOf(email: string): Promise<StoryUsage['plan']> {
   const access = await accountAccess(email)
   if (access.source === 'time') return 'time'
+  if (access.source === 'ilimitado') return 'ilimitado'
   return access.plan ?? 'gratis'
 }
 
