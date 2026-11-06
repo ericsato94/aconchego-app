@@ -19,6 +19,11 @@
   font-weight: 600;
 }
 
+.create__usage.is-plan {
+  background: var(--c-plan-soft, #efeafe);
+  color: var(--c-plan);
+}
+
 .create__usage.is-out {
   background: var(--c-danger-soft);
   color: var(--c-danger);
@@ -164,6 +169,19 @@
 
 .create__limit svg {
   color: var(--c-plan);
+}
+
+.create__upsell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  text-align: center;
+  color: var(--c-text);
+}
+
+.create__upsell-art {
+  width: 120px;
 }
 
 .create__busy {

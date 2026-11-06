@@ -79,6 +79,9 @@ export default function Plans() {
                 <li>
                   <Icon name="check" size={18} /> Voz clonada: as histórias com a sua voz
                 </li>
+                <li>
+                  <Icon name="check" size={18} /> Até 6 histórias personalizadas por mês
+                </li>
                 {plan.features.map((f) => (
                   <li key={f}>
                     <Icon name="check" size={18} /> {f}

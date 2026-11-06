@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import lionReading from '../../assets/lion-reading.webp'
 import { BackButton } from '../../components/BackButton'
 import { Icon } from '../../components/Icon'
+import { Modal } from '../../components/Modal'
 import { isChildName } from '../../data/greetings'
 import { customStories, StoryApiError, useCustomStories, type StoryMood, type StoryUsage } from '../../services/customStories'
 import { useApp } from '../../store/appContext'
@@ -26,7 +27,7 @@ const STEPS = ['Lendo o seu pedido…', 'Escrevendo a história…', 'Conferindo
 const MAX_ABOUT = 300
 
 function usageText(u: StoryUsage) {
-  if (u.plan === 'gratis') return u.used >= u.limit ? 'Você já usou a sua história de teste.' : 'Você tem 1 história de teste grátis.'
+  if (u.plan === 'gratis') return 'Disponível nos planos Mensal e Anual'
   const left = Math.max(0, u.limit - u.used)
   return `${left} de ${u.limit} histórias disponíveis neste mês · até ${u.dayLimit} por dia`
 }
@@ -41,7 +42,8 @@ export default function CreateStory() {
   const [mood, setMood] = useState<StoryMood>('calma')
   const [busy, setBusy] = useState(false)
   const [step, setStep] = useState(0)
-  const [error, setError] = useState<{ text: string; limit?: boolean } | null>(null)
+  const [error, setError] = useState<{ text: string } | null>(null)
+  const [upsell, setUpsell] = useState(false)
 
   useEffect(() => {
     customStories.load()
@@ -54,11 +56,13 @@ export default function CreateStory() {
   }, [busy])
 
   const free = usage?.plan === 'gratis'
-  const outOfStories = Boolean(usage && (usage.used >= usage.limit || usage.today >= usage.dayLimit))
+  // No plano grátis o formulário fica visível; ao tentar criar, mostra que é um recurso dos planos pagos.
+  const outOfStories = Boolean(usage && !free && (usage.used >= usage.limit || usage.today >= usage.dayLimit))
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (busy || about.trim().length < 3) return
+    if (free) return setUpsell(true)
     setStep(0)
     setBusy(true)
     setError(null)
@@ -72,11 +76,9 @@ export default function CreateStory() {
       navigate(`/historias/${story.id}`, { replace: true })
     } catch (err) {
       const status = err instanceof StoryApiError ? err.status : 0
-      setError({
-        text: err instanceof Error ? err.message : 'Não foi possível criar a história.',
-        limit: status === 429,
-      })
       setBusy(false)
+      if (status === 403) return setUpsell(true)
+      setError({ text: err instanceof Error ? err.message : 'Não foi possível criar a história.' })
     }
   }
 
@@ -107,24 +109,47 @@ export default function CreateStory() {
         <p className="page-subtitle">
           Conte sobre o que você quer que seja a história de hoje{childName ? ` para ${childName}` : ''}.
         </p>
-        {usage && <p className={`create__usage${outOfStories ? ' is-out' : ''}`}>{usageText(usage)}</p>}
+        {usage && <p className={`create__usage${free ? ' is-plan' : outOfStories ? ' is-out' : ''}`}>{usageText(usage)}</p>}
       </div>
+
+      <Modal
+        open={upsell}
+        onClose={() => setUpsell(false)}
+        title="Recurso dos planos pagos"
+        size="sm"
+        footer={
+          <>
+            <Link to="/planos" className="btn btn--plan btn--block" data-autofocus>
+              <Icon name="crown" size={20} />
+              Ver planos
+            </Link>
+            <button type="button" className="btn btn--ghost btn--block" onClick={() => setUpsell(false)}>
+              Agora não
+            </button>
+          </>
+        }
+      >
+        <div className="create__upsell">
+          <img src={lionReading} alt="" className="create__upsell-art" />
+          <p>
+            Criar histórias personalizadas está disponível nos planos <strong>Mensal</strong> e <strong>Anual</strong>.
+          </p>
+          <p className="muted">
+            Assine para criar até 6 histórias novas por mês{childName ? ` com ${childName} como personagem` : ''}, narradas com a
+            sua voz.
+          </p>
+        </div>
+      </Modal>
 
       {outOfStories && usage ? (
         <div className="card create__limit">
-          <Icon name={free ? 'crown' : 'calendar'} size={28} />
+          <Icon name="calendar" size={28} />
           <p>
-            {free
-              ? 'Assine para criar até 6 histórias por mês, narradas com a sua voz.'
-              : usage.used >= usage.limit
-                ? 'Você já criou todas as histórias deste mês. O limite renova no dia 1º.'
-                : 'Você já criou as histórias de hoje. Amanhã tem mais!'}
+            {usage.used >= usage.limit
+              ? 'Você já criou todas as histórias deste mês. O limite renova no dia 1º.'
+              : 'Você já criou as histórias de hoje. Amanhã tem mais!'}
           </p>
-          {free ? (
-            <Link to="/planos" className="btn btn--plan btn--block">Ver planos</Link>
-          ) : (
-            <Link to="/historias?filtro=criadas" className="btn btn--secondary btn--block">Ver minhas histórias</Link>
-          )}
+          <Link to="/historias?filtro=criadas" className="btn btn--secondary btn--block">Ver minhas histórias</Link>
         </div>
       ) : (
         <form className="card create__form" onSubmit={submit}>
@@ -173,12 +198,6 @@ export default function CreateStory() {
           {error && (
             <p className="field__error create__error" role="alert">
               {error.text}
-              {error.limit && free && (
-                <>
-                  {' '}
-                  <Link to="/planos">Ver planos</Link>
-                </>
-              )}
             </p>
           )}
 
@@ -190,7 +209,6 @@ export default function CreateStory() {
           <p className="create__note">
             <Icon name="shield" size={16} />
             Toda história passa por filtros de segurança para crianças antes de chegar até você.
-            {free && ' No teste grátis, a história usa a narração padrão.'}
           </p>
         </form>
       )}

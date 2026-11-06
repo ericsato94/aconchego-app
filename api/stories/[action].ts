@@ -54,7 +54,7 @@ async function create(request: Request) {
   const plan = await planOf(email)
   const usage = await storyUsage(userId, plan)
   const blockedByLimit = limitMessage(usage)
-  if (blockedByLimit) throw new HttpError(429, blockedByLimit)
+  if (blockedByLimit) throw new HttpError(usage.plan === 'gratis' ? 403 : 429, blockedByLimit)
 
   const admin = supabaseAdmin()
   const log = (status: 'ready' | 'blocked' | 'failed', storyId: string | null = null) =>

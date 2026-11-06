@@ -5,8 +5,8 @@ import { supabaseAdmin } from './supabaseAdmin.js'
  * Custo por história ≈ R$ 0,60–0,75 (texto + filtros + narração com a voz clonada).
  */
 export const STORY_LIMITS = {
-  /** Plano grátis: histórias de teste no total (narração padrão, sem voz clonada). */
-  freeTotal: 1,
+  /** Plano grátis: criar histórias personalizadas é exclusivo dos planos pagos. */
+  freeTotal: 0,
   /** Planos Mensal e Anual: histórias por mês. */
   paidPerMonth: 6,
   /** E-mails do time (testes). */
@@ -65,13 +65,12 @@ export async function storyUsage(userId: string, plan: StoryUsage['plan']): Prom
   }
 }
 
+export const FREE_PLAN_MESSAGE = 'Criar histórias personalizadas está disponível nos planos Mensal e Anual.'
+
 /** Mensagem de bloqueio por limite (ou null se ainda pode criar). */
 export function limitMessage(u: StoryUsage) {
-  if (u.used >= u.limit) {
-    return u.plan === 'gratis'
-      ? 'Você já usou a sua história de teste. Assine para criar histórias com a sua voz todo mês.'
-      : `Você já criou as ${u.limit} histórias deste mês. O limite renova no dia 1º.`
-  }
+  if (u.plan === 'gratis') return FREE_PLAN_MESSAGE
+  if (u.used >= u.limit) return `Você já criou as ${u.limit} histórias deste mês. O limite renova no dia 1º.`
   if (u.today >= u.dayLimit) return 'Você já criou as histórias de hoje. Amanhã tem mais!'
   if (u.attemptsToday >= STORY_LIMITS.attemptsPerDay) return 'Muitas tentativas hoje. Tente de novo amanhã.'
   return null
