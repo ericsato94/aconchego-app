@@ -28,6 +28,11 @@ async function check(res: Response, what: string) {
 }
 
 export const audioStore = {
+  /** Onde as narrações novas estão sendo guardadas (sem expor chaves). */
+  get backend(): 'r2' | 'supabase' {
+    return r2() ? 'r2' : 'supabase'
+  },
+
   /** Guarda o áudio e devolve o caminho a salvar no banco. */
   async put(key: string, audio: Buffer, contentType = 'audio/mpeg'): Promise<string> {
     const store = r2()
