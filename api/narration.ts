@@ -5,6 +5,7 @@ import { HttpError, supabaseAdmin } from './_lib/supabaseAdmin.js'
 import { greetingText, isChildName } from '../src/data/greetings.js'
 import { STORY_TEXTS } from '../src/data/storyTexts.js'
 import { voiceRecordings, withTemporaryVoice } from './_lib/voices.js'
+import { audioStore } from './_lib/audioStore.js'
 
 /** Quebra dupla entre parágrafos: gera uma pausa natural na narração. */
 const PARAGRAPH_JOIN = '\n\n'
@@ -76,7 +77,6 @@ export const POST = route(async (request) => {
     .digest('hex')
     .slice(0, 32)
   const admin = supabaseAdmin()
-  const bucket = admin.storage.from('narrations')
   const { data: cached } = await admin.from('narrations').select('storage_path, duration, starts').eq('key', key).maybeSingle()
 
   let meta = cached
@@ -92,15 +92,12 @@ export const POST = route(async (request) => {
       starts.push(charStarts[offset] ?? starts[starts.length - 1] ?? 0)
       offset += p.length + PARAGRAPH_JOIN.length
     }
-    const storagePath = `${voiceId}/${key}.mp3`
-    const upload = await bucket.upload(storagePath, audio, { contentType: 'audio/mpeg', upsert: true })
-    if (upload.error) throw upload.error
+    const storagePath = await audioStore.put(`${voiceId}/${key}.mp3`, audio)
     meta = { storage_path: storagePath, duration, starts }
     const { error } = await admin.from('narrations').upsert({ key, voice_id: voiceId, ...meta })
     if (error) throw error
   }
 
-  const { data: signed, error } = await bucket.createSignedUrl(meta.storage_path, SIGNED_URL_SECONDS)
-  if (error || !signed) throw error ?? new HttpError(500, 'Falha ao preparar o áudio.')
-  return json({ audioUrl: signed.signedUrl, duration: meta.duration, starts: meta.starts })
+  const audioUrl = await audioStore.signedUrl(meta.storage_path, SIGNED_URL_SECONDS)
+  return json({ audioUrl, duration: meta.duration, starts: meta.starts })
 })

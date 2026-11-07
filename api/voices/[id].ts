@@ -1,5 +1,6 @@
 import { elevenlabs } from '../_lib/elevenlabs.js'
 import { json, requireUser, requireVoiceOwner, route } from '../_lib/http.js'
+import { audioStore } from '../_lib/audioStore.js'
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js'
 
 /**
@@ -17,7 +18,7 @@ export const DELETE = route(async (request) => {
   const admin = supabaseAdmin()
   const { data: narrations } = await admin.from('narrations').select('storage_path').eq('voice_id', voiceId)
   const audioPaths = (narrations ?? []).map((n) => n.storage_path)
-  if (audioPaths.length) await admin.storage.from('narrations').remove(audioPaths)
+  if (audioPaths.length) await audioStore.remove(audioPaths)
 
   const { data: recordings } = await admin.storage.from('recordings').list(userId)
   if (recordings?.length) await admin.storage.from('recordings').remove(recordings.map((f) => `${userId}/${f.name}`))
