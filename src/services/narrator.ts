@@ -24,20 +24,26 @@ export interface SpeakOptions {
   onEnd?: () => void
   /** true enquanto a narração com a voz clonada está sendo gerada (só na primeira vez de cada história). */
   onLoading?: (loading: boolean) => void
+  /** Título mostrado na tela de bloqueio. */
+  media?: { title: string }
+  /** O áudio foi pausado por fora do app (tela de bloqueio, fone, ligação). */
+  onExternalPause?: () => void
+  /** Play pela tela de bloqueio. */
+  onExternalPlay?: () => void
 }
 
 const synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null
-const AudioCtx: typeof AudioContext | undefined =
-  typeof window !== 'undefined'
-    ? (window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
-    : undefined
+
+/** 0,1 s de silêncio: tocado dentro do toque do usuário para liberar o som (iPhone, inclusive no app instalado). */
+const SILENCE = 'data:audio/mpeg;base64,//NAxAAAAANIAAAAAExBTUU0LjBVVVVVVVVVVVVVVVVMQU1FNC4wVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEWwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FNC4wVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUU0LjBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUU0LjBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV'
 
 const BASE_RATE = 0.95
-/** Margem antes de começar: evita que a saída de som (ex.: Bluetooth) engula as primeiras palavras. */
-const LEAD_IN_S = 0.3
 /** Recuo ao retomar um parágrafo, para não começar no meio de uma respiração. */
 const RESUME_BACKOFF_S = 0.15
 const MAX_CACHED = 12
+
+type WakeLockSentinelLike = { release(): Promise<void> }
+type NavigatorWithWakeLock = Navigator & { wakeLock?: { request(type: 'screen'): Promise<WakeLockSentinelLike> } }
 
 function pickVoice(): SpeechSynthesisVoice | undefined {
   const voices = synth?.getVoices() ?? []
@@ -54,16 +60,19 @@ class Narrator {
   private watchdog: number | undefined
   private volume = 1
   private ttsBroken = !synth
-  /** Canal de áudio da voz clonada (Web Audio: volume suave e sem cortes no início). */
-  private ctx: AudioContext | null = null
-  private gain: GainNode | null = null
-  private source: AudioBufferSourceNode | null = null
+  /**
+   * Player dos áudios prontos (voz clonada e narração padrão). Um <audio> comum, e não Web Audio:
+   * é o que toca no app instalado do iPhone, com a tela bloqueada e com a chave de silencioso ligada.
+   */
+  private audio: HTMLAudioElement | null = null
   private tracker: number | undefined
-  private narrations = new Map<string, Promise<{ meta: NarrationMeta; buffer: AudioBuffer }>>()
+  private wakeLock: WakeLockSentinelLike | null = null
+  private narrations = new Map<string, Promise<NarrationMeta>>()
 
   setVolume(volume: number) {
     this.volume = Math.max(0, Math.min(1, volume))
-    if (this.ctx && this.gain) this.gain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.4)
+    // No iPhone o volume do <audio> é sempre o do aparelho (o fade do modo sono só vale nos outros).
+    if (this.audio) this.audio.volume = this.volume
   }
 
   stop() {
@@ -72,40 +81,51 @@ class Narrator {
     window.clearTimeout(this.watchdog)
     window.clearInterval(this.tracker)
     synth?.cancel()
-    if (this.source) {
-      this.source.onended = null
-      try {
-        this.source.stop()
-      } catch {
-        /* já parado */
-      }
-      this.source = null
+    const audio = this.audio
+    if (audio) {
+      audio.onended = audio.onerror = audio.onpause = audio.onplaying = audio.onloadedmetadata = null
+      audio.pause()
     }
+    this.releaseWakeLock()
   }
 
-  /** Cria/retoma o canal de áudio. Chamado dentro do toque do usuário (libera o som no iOS). */
-  private audioContext() {
-    if (!AudioCtx) return null
-    if (!this.ctx) {
-      this.ctx = new AudioCtx()
-      this.gain = this.ctx.createGain()
-      this.gain.connect(this.ctx.destination)
+  private element() {
+    if (!this.audio) {
+      const audio = new Audio()
+      audio.preload = 'auto'
+      audio.setAttribute('playsinline', '')
+      this.audio = audio
     }
-    this.gain!.gain.value = this.volume
-    if (this.ctx.state !== 'running') this.ctx.resume().catch(() => undefined)
-    return this.ctx
+    return this.audio
   }
 
-  /** Gera/baixa (uma vez) a narração do texto inteiro e decodifica o áudio. */
+  /** Chamado dentro do toque do usuário: o iPhone só deixa este player tocar depois disso. */
+  private unlock() {
+    const audio = this.element()
+    audio.src = SILENCE
+    audio.play().catch(() => undefined)
+  }
+
+  /** Mantém a tela acesa enquanto a história toca (onde o navegador permitir). */
+  private keepScreenOn() {
+    const nav = navigator as NavigatorWithWakeLock
+    if (this.wakeLock || !nav.wakeLock || document.visibilityState !== 'visible') return
+    nav.wakeLock
+      .request('screen')
+      .then((lock) => (this.wakeLock = lock))
+      .catch(() => undefined)
+  }
+
+  private releaseWakeLock() {
+    this.wakeLock?.release().catch(() => undefined)
+    this.wakeLock = null
+  }
+
+  /** Busca (uma vez) os dados da narração; o próprio navegador guarda o arquivo de áudio em cache. */
   private narration(key: string, resolve: () => Promise<NarrationMeta>) {
-    const ctx = this.ctx!
     let item = this.narrations.get(key)
     if (!item) {
-      item = resolve().then(async (meta) => {
-        const res = await fetch(meta.audioUrl)
-        if (!res.ok) throw new Error(`audio ${res.status}`)
-        return { meta, buffer: await ctx.decodeAudioData(await res.arrayBuffer()) }
-      })
+      item = resolve()
       item.catch(() => this.narrations.delete(key))
       this.narrations.set(key, item)
       if (this.narrations.size > MAX_CACHED) this.narrations.delete(this.narrations.keys().next().value!)
@@ -119,7 +139,7 @@ class Narrator {
     if (opts.volume !== undefined) this.setVolume(opts.volume)
     const rate = opts.rate ?? BASE_RATE
 
-    // Voz do aparelho, parágrafo a parágrafo: sem voz clonada ou se a nuvem falhar.
+    // Voz do aparelho, parágrafo a parágrafo: sem áudio pronto ou se ele falhar.
     const deviceFrom = (index: number) => {
       if (run !== this.runId) return
       if (index >= texts.length) return opts.onEnd?.()
@@ -128,76 +148,114 @@ class Narrator {
     }
 
     const { cloud, preset } = opts
-    if (cloud && this.audioContext()) {
+    if (cloud) {
+      this.unlock()
       const key = `${cloud.voiceId}\n${JSON.stringify(cloud.ref)}`
-      this.playCloud(from, key, () => voiceApi.narration(cloud.voiceId, cloud.ref), run, opts, () => deviceFrom(from))
-    } else if (preset && this.audioContext()) {
-      this.playCloud(from, preset.audioUrl, () => Promise.resolve(preset), run, opts, () => deviceFrom(from))
+      this.playAudio(from, this.narration(key, () => voiceApi.narration(cloud.voiceId, cloud.ref)), run, opts, () => deviceFrom(from))
+    } else if (preset) {
+      // Arquivo já conhecido: dá o play direto, ainda dentro do toque do usuário.
+      this.playAudio(from, preset, run, opts, () => deviceFrom(from))
     } else {
       deviceFrom(from)
     }
   }
 
   /** Toca a história inteira de uma vez, acompanhando o parágrafo atual pelas marcações de tempo. */
-  private playCloud(
-    from: number,
-    key: string,
-    resolve: () => Promise<NarrationMeta>,
-    run: number,
-    opts: SpeakOptions,
-    fallback: () => void,
-  ) {
+  private playAudio(from: number, ready: NarrationMeta | Promise<NarrationMeta>, run: number, opts: SpeakOptions, fallback: () => void) {
     const loadingTimer = window.setTimeout(() => run === this.runId && opts.onLoading?.(true), 300)
-    this.narration(key, resolve)
-      .then(({ meta, buffer }) => {
-        window.clearTimeout(loadingTimer)
-        opts.onLoading?.(false)
-        const ctx = this.ctx
-        if (run !== this.runId || !ctx || !this.gain) return
+    const fail = () => {
+      window.clearTimeout(loadingTimer)
+      opts.onLoading?.(false)
+      if (run !== this.runId) return
+      window.clearInterval(this.tracker)
+      fallback()
+    }
 
-        const duration = meta.duration || buffer.duration
+    const start = (meta: NarrationMeta) => {
+      if (run !== this.runId) return
+      const audio = this.element()
+      const starts = meta.starts
+      const indexAt = (seconds: number) => {
+        let index = 0
+        while (index + 1 < starts.length && seconds >= starts[index + 1]) index++
+        return index
+      }
+      let duration = meta.duration
+      let current = from
+      /** Só depois que o áudio da história começa: ignora pausa/fim do silêncio usado para liberar o som. */
+      let started = false
+
+      // A posição certa é aplicada assim que os dados do arquivo chegam.
+      audio.onloadedmetadata = () => {
+        if (run !== this.runId || audio.src.startsWith('data:')) return
+        duration = meta.duration || audio.duration
         const offset =
           opts.startSeconds !== undefined
             ? Math.max(0, Math.min(opts.startSeconds, duration - 0.5))
-            : Math.max(0, (meta.starts[from] ?? 0) - (from > 0 ? RESUME_BACKOFF_S : 0))
-        const source = ctx.createBufferSource()
-        source.buffer = buffer
-        source.connect(this.gain)
-        source.onended = () => {
-          if (run !== this.runId) return
-          window.clearInterval(this.tracker)
-          opts.onTime?.(duration, duration, meta.starts)
-          opts.onEnd?.()
-        }
-        this.source = source
-        const startAt = ctx.currentTime + LEAD_IN_S
-        source.start(startAt, offset)
-
-        // Acompanha o parágrafo que está sendo falado (destaque, progresso e retomada) e o tempo real.
-        const indexAt = (seconds: number) => {
-          let index = 0
-          while (index + 1 < meta.starts.length && seconds >= meta.starts[index + 1]) index++
-          return index
-        }
-        let current = opts.startSeconds !== undefined ? indexAt(offset) : from
+            : Math.max(0, (starts[from] ?? 0) - (from > 0 ? RESUME_BACKOFF_S : 0))
+        audio.currentTime = offset
+        current = opts.startSeconds !== undefined ? indexAt(offset) : from
         opts.onIndex?.(current)
-        opts.onTime?.(offset, duration, meta.starts)
+        opts.onTime?.(offset, duration, starts)
+      }
+      audio.onplaying = () => {
+        if (run !== this.runId || audio.src.startsWith('data:')) return
+        started = true
+        window.clearTimeout(loadingTimer)
+        opts.onLoading?.(false)
+        this.keepScreenOn()
+        window.clearInterval(this.tracker)
+        // Acompanha o parágrafo que está sendo falado (destaque, progresso e retomada) e o tempo real.
         this.tracker = window.setInterval(() => {
           if (run !== this.runId) return
-          const position = Math.min(duration, offset + Math.max(0, ctx.currentTime - startAt))
-          opts.onTime?.(position, duration, meta.starts)
+          const position = Math.min(duration, audio.currentTime)
+          opts.onTime?.(position, duration, starts)
           const index = indexAt(position)
           if (index !== current) {
             current = index
             opts.onIndex?.(index)
           }
         }, 250)
+      }
+      // Pausa vinda de fora (tela de bloqueio, fone, ligação): o app acompanha.
+      audio.onpause = () => {
+        if (run !== this.runId || !started || audio.ended) return
+        window.clearInterval(this.tracker)
+        opts.onExternalPause?.()
+      }
+      audio.onended = () => {
+        if (run !== this.runId || !started) return
+        window.clearInterval(this.tracker)
+        this.releaseWakeLock()
+        opts.onTime?.(duration, duration, starts)
+        opts.onEnd?.()
+      }
+      audio.onerror = () => {
+        if (!audio.src.startsWith('data:')) fail()
+      }
+      audio.volume = this.volume
+      audio.src = meta.audioUrl
+      audio.play().catch((err: unknown) => {
+        if (!(err instanceof DOMException && err.name === 'AbortError')) fail()
       })
-      .catch(() => {
-        window.clearTimeout(loadingTimer)
-        opts.onLoading?.(false)
-        if (run === this.runId) fallback()
-      })
+      this.updateMediaSession(opts)
+    }
+
+    if (ready instanceof Promise) ready.then(start).catch(fail)
+    else start(ready)
+  }
+
+  /** Título e botões da tela de bloqueio / central de controle. */
+  private updateMediaSession(opts: SpeakOptions) {
+    if (!('mediaSession' in navigator) || !opts.media) return
+    const session = navigator.mediaSession
+    session.metadata = new MediaMetadata({
+      title: opts.media.title,
+      artist: 'Aconchego',
+      artwork: [{ src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }],
+    })
+    session.setActionHandler('play', () => opts.onExternalPlay?.())
+    session.setActionHandler('pause', () => this.audio?.pause())
   }
 
   private playDevice(text: string, rate: number, pitch: number | undefined, run: number, advance: () => void) {

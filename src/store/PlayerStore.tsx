@@ -21,6 +21,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const listenStart = useRef<number | null>(null)
   /** Marcações de tempo do áudio da história atual (para a linha do tempo com o player pausado). */
   const timing = useRef<{ storyId: string; starts: number[]; duration: number } | null>(null)
+  /** Pausa/play feitos fora do app (tela de bloqueio, fone): ligados depois que as funções existem. */
+  const external = useRef({ pause: () => {}, toggle: () => {} })
   const ctx = useRef({ data, actions })
   useEffect(() => {
     stateRef.current = state
@@ -65,6 +67,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         cloud,
         preset,
         startSeconds,
+        media: { title: story.title },
+        onExternalPause: () => external.current.pause(),
+        onExternalPlay: () => external.current.toggle(),
         onTime: (elapsed, duration, starts) => {
           timing.current = { storyId, starts, duration }
           setState((s) => (s.storyId === storyId ? { ...s, elapsed, duration } : s))
@@ -198,6 +203,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const timer = window.setInterval(tick, 1000)
     return () => window.clearInterval(timer)
   }, [sleepEndsAt, commitListen])
+
+  useEffect(() => {
+    external.current = { pause, toggle }
+  }, [pause, toggle])
 
   // Para a narração ao sair da página.
   useEffect(() => () => narrator.stop(), [])
