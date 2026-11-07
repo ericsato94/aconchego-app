@@ -334,9 +334,9 @@
       {
         "id": "mensal",
         "name": "Mensal",
-        "price": "R$ 19,90",
+        "price": "R$ 29,90",
         "period": "por mês",
-        "value": 19.9,
+        "value": 29.9,
         "features": [
           "Biblioteca completa",
           "1 voz da família",
@@ -347,14 +347,14 @@
       {
         "id": "anual",
         "name": "Anual",
-        "price": "R$ 147,00",
+        "price": "R$ 247,00",
         "period": "por ano",
-        "note": "≈ R$ 12,25 por mês",
-        "value": 147,
+        "note": "≈ R$ 20,58 por mês",
+        "value": 247,
         "features": [
           "Biblioteca completa",
           "Até 3 vozes (mãe, pai, avó)",
-          "Economia de 38%"
+          "Economia de 31%"
         ],
         "checkoutUrl": "https://pay.cakto.com.br/6dg8mmw_1218232"
       }
