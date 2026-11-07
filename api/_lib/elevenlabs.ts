@@ -117,6 +117,17 @@ export const elevenlabs = {
     }
   },
 
+  /** Vozes da conta cujo nome contém `search` (id e data de criação em ms). */
+  async listVoices(search: string): Promise<Array<{ id: string; createdAt: number }>> {
+    const v2 = base().replace(/\/v1$/, '/v2')
+    const res = await fetch(`${v2}/voices?page_size=100&voice_type=personal&search=${encodeURIComponent(search)}`, { headers: headers() })
+    if (!res.ok) await fail(res)
+    const body = (await res.json()) as { voices?: Array<{ voice_id: string; name: string; created_at_unix?: number }> }
+    return (body.voices ?? [])
+      .filter((v) => v.name.includes(search))
+      .map((v) => ({ id: v.voice_id, createdAt: (v.created_at_unix ?? 0) * 1000 }))
+  },
+
   async deleteVoice(voiceId: string) {
     const res = await fetch(`${base()}/voices/${voiceId}`, { method: 'DELETE', headers: headers() })
     // 404/400 = já não existe na ElevenLabs: trata como excluída.

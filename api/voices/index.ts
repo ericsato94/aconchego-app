@@ -1,11 +1,13 @@
 import { elevenlabs } from '../_lib/elevenlabs.js'
 import { accountAccess, json, requireUser, route } from '../_lib/http.js'
 import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
+import { newVoiceId, withTemporaryVoice } from '../_lib/voices.js'
 
 /**
- * POST /api/voices { name, paths[] } — cria a voz clonada.
- * As gravações já foram enviadas pelo app ao armazenamento (recordings/<user_id>/…);
- * aqui o servidor as busca e envia à ElevenLabs.
+ * POST /api/voices { name, paths[] } — registra a voz clonada.
+ * As gravações já foram enviadas pelo app ao armazenamento (recordings/<user_id>/…). A voz não fica
+ * na ElevenLabs: é recriada a partir delas só na hora de narrar (ver _lib/voices.ts). Aqui fazemos
+ * uma clonagem de teste para garantir que as gravações servem, e guardamos o registro.
  */
 /** GET /api/voices — acesso da conta: pode criar voz clonada? qual plano pago está em vigor? */
 export const GET = route(async (request) => {
@@ -24,20 +26,13 @@ export const POST = route(async (request) => {
     throw new HttpError(400, 'Gravações inválidas.')
   }
 
-  const admin = supabaseAdmin()
-  const files = await Promise.all(
-    paths.map(async (path) => {
-      const { data, error } = await admin.storage.from('recordings').download(path)
-      if (error || !data) throw new HttpError(400, 'Não encontramos a gravação enviada. Grave novamente.')
-      return new File([data], path.split('/').pop() ?? 'amostra.webm', { type: data.type || 'audio/webm' })
-    }),
-  )
+  // Clonagem de teste (desfeita na hora): falha aqui se a gravação não servir.
+  await withTemporaryVoice(paths, async () => undefined)
 
-  const voiceId = await elevenlabs.createVoice(String(body?.name ?? 'Aconchego').slice(0, 80), files)
-  const { error } = await admin.from('voices').insert({ voice_id: voiceId, user_id: userId, model: elevenlabs.modelId })
-  if (error) {
-    await elevenlabs.deleteVoice(voiceId).catch(() => undefined)
-    throw error
-  }
+  const voiceId = newVoiceId()
+  const { error } = await supabaseAdmin()
+    .from('voices')
+    .insert({ voice_id: voiceId, user_id: userId, model: elevenlabs.modelId, recording_paths: paths, name: String(body?.name ?? '').slice(0, 80) || null })
+  if (error) throw error
   return json({ voiceId }, 201)
 })

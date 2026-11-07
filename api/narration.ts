@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto'
 import { elevenlabs, SETTINGS_VERSION, toSpeech } from './_lib/elevenlabs.js'
-import { accountAccess, json, requireUser, requireVoiceOwner, route } from './_lib/http.js'
+import { accountAccess, json, requireUser, route } from './_lib/http.js'
 import { HttpError, supabaseAdmin } from './_lib/supabaseAdmin.js'
 import { greetingText, isChildName } from '../src/data/greetings.js'
 import { STORY_TEXTS } from '../src/data/storyTexts.js'
+import { voiceRecordings, withTemporaryVoice } from './_lib/voices.js'
 
 /** Quebra dupla entre parágrafos: gera uma pausa natural na narração. */
 const PARAGRAPH_JOIN = '\n\n'
@@ -64,7 +65,7 @@ export const POST = route(async (request) => {
   }
   const body = ((await request.json().catch(() => null)) ?? {}) as NarrationRef & { voiceId?: string }
   const voiceId = body.voiceId ?? ''
-  await requireVoiceOwner(voiceId, userId)
+  const recordings = await voiceRecordings(voiceId, userId)
   const original = await resolveParagraphs(body, userId)
   const speed = NARRATION_SPEED
 
@@ -80,7 +81,10 @@ export const POST = route(async (request) => {
 
   let meta = cached
   if (!meta) {
-    const { audio, charStarts, duration } = await elevenlabs.narrate(voiceId, text, speed)
+    // A voz é recriada das gravações só para esta narração e apagada em seguida (sem ocupar vaga).
+    const { audio, charStarts, duration } = await withTemporaryVoice(recordings, (elevenVoiceId) =>
+      elevenlabs.narrate(elevenVoiceId, text, speed),
+    )
     // Converte a posição de cada parágrafo no texto em segundos de áudio.
     const starts: number[] = []
     let offset = 0

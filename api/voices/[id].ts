@@ -3,15 +3,16 @@ import { json, requireUser, requireVoiceOwner, route } from '../_lib/http.js'
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js'
 
 /**
- * DELETE /api/voices/:id — exclui a voz na ElevenLabs e tudo ligado a ela
- * (narrações geradas e gravações), exigência da LGPD.
+ * DELETE /api/voices/:id — exclui a voz e tudo ligado a ela (narrações geradas e gravações),
+ * exigência da LGPD. Vozes antigas ainda guardadas na ElevenLabs também são apagadas lá.
  */
 export const DELETE = route(async (request) => {
   const { id: userId } = await requireUser(request)
   const voiceId = decodeURIComponent(new URL(request.url).pathname.split('/').pop() ?? '')
   await requireVoiceOwner(voiceId, userId)
 
-  await elevenlabs.deleteVoice(voiceId)
+  // Vozes no formato novo (código "av…") não existem na ElevenLabs: só as antigas são apagadas lá.
+  if (!voiceId.startsWith('av')) await elevenlabs.deleteVoice(voiceId)
 
   const admin = supabaseAdmin()
   const { data: narrations } = await admin.from('narrations').select('storage_path').eq('voice_id', voiceId)

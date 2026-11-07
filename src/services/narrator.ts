@@ -148,13 +148,15 @@ class Narrator {
     }
 
     const { cloud, preset } = opts
+    // Se a voz clonada falhar, tenta a narração padrão antes da voz do aparelho.
+    const playPreset = () => (preset ? this.playAudio(from, preset, run, opts, () => deviceFrom(from)) : deviceFrom(from))
     if (cloud) {
       this.unlock()
       const key = `${cloud.voiceId}\n${JSON.stringify(cloud.ref)}`
-      this.playAudio(from, this.narration(key, () => voiceApi.narration(cloud.voiceId, cloud.ref)), run, opts, () => deviceFrom(from))
+      this.playAudio(from, this.narration(key, () => voiceApi.narration(cloud.voiceId, cloud.ref)), run, opts, playPreset)
     } else if (preset) {
       // Arquivo já conhecido: dá o play direto, ainda dentro do toque do usuário.
-      this.playAudio(from, preset, run, opts, () => deviceFrom(from))
+      playPreset()
     } else {
       deviceFrom(from)
     }
