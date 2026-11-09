@@ -301,11 +301,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-          const paths = await Promise.all([
+          const [, readingPath] = await Promise.all([
             recordingsService.upload(u.id, 'phrase', phraseBlob!),
             recordingsService.upload(u.id, 'reading', readingBlob!),
           ])
-          const voiceId = await voiceApi.createVoice(`Aconchego · ${u.name}`, paths)
+          // A voz é clonada só da leitura (~2,5 min). A frase de verificação tem poucos segundos
+          // (a ElevenLabs recusa amostras com menos de 4,6 s) e fica guardada só como prova de autoria.
+          const voiceId = await voiceApi.createVoice(`Aconchego · ${u.name}`, [readingPath])
           update((d) =>
             d.voice.status !== 'processing'
               ? d
