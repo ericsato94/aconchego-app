@@ -106,7 +106,7 @@ export default function VoiceTest() {
         </div>
         <p className="voice-status__note">
           {data.voice.voiceId
-            ? 'Voz criada com a ElevenLabs a partir da sua gravação.'
+            ? 'Voz criada a partir da sua gravação.'
             : 'Modo demonstração: sem o servidor de voz, a narração usa a síntese de voz do aparelho.'}
         </p>
       </section>

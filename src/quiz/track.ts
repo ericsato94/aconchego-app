@@ -1,3 +1,6 @@
+import { GENERIC_ERROR } from '../data/messages'
+import { UserFacingError } from '../lib/errors'
+
 /** Envia os eventos do funil para o servidor, que grava no banco (Supabase). */
 export type QuizEventType =
   | 'quiz_started'
@@ -72,9 +75,11 @@ export async function saveLead(data: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
+  }).catch(() => {
+    throw new UserFacingError(GENERIC_ERROR)
   })
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new Error(body.error ?? 'Não foi possível enviar. Tente de novo.')
+    throw new UserFacingError(body.error ?? GENERIC_ERROR)
   }
 }

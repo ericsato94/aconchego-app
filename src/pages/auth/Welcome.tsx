@@ -5,6 +5,7 @@ import { authService } from '../../services/auth'
 import { useApp } from '../../store/appContext'
 import { useToast } from '../../store/toastContext'
 import { AuthLayout } from './AuthLayout'
+import { userMessage } from '../../lib/errors'
 
 export default function Welcome() {
   const { actions } = useApp()
@@ -20,7 +21,7 @@ export default function Welcome() {
       }
       await actions.signInWithGoogle()
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Não foi possível entrar com o Google.', 'error')
+      toast(userMessage(err), 'error')
     } finally {
       setBusy(false)
     }

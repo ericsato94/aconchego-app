@@ -78,7 +78,7 @@ async function create(request: Request) {
       // Fica registrado (sem texto) para revisão e conta como tentativa do dia.
       const { data } = await admin
         .from('custom_stories')
-        .insert({ user_id: userId, status: 'blocked', request: req, mood: req.mood, block_reason: err.message.slice(0, 300) })
+        .insert({ user_id: userId, status: 'blocked', request: req, mood: req.mood, block_reason: err.reason.slice(0, 300) })
         .select('id')
         .single()
       await log('blocked', data?.id ?? null)

@@ -6,6 +6,7 @@ import { buildResult } from '../../quiz/result'
 import { quizState } from '../../quiz/state'
 import { saveLead } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
+import { userMessage } from '../../lib/errors'
 
 /** Máscara simples de WhatsApp brasileiro: (11) 91234-5678 */
 function maskPhone(value: string) {
@@ -46,7 +47,7 @@ export default function QuizLead() {
       quizState.update({ name: name.trim(), leadSaved: true })
       navigate('/quiz/resultado', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível enviar.')
+      setError(userMessage(err))
       setBusy(false)
     }
   }

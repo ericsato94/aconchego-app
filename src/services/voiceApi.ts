@@ -2,9 +2,11 @@
  * Cliente do servidor do Aconchego (server/index.ts), que fala com a ElevenLabs.
  * O app nunca vê a chave da API.
  */
-export class VoiceApiError extends Error {}
+export class VoiceApiError extends UserFacingError {}
 
 import type { GreetingKind } from '../data/greetings'
+import { GENERIC_ERROR } from '../data/messages'
+import { UserFacingError } from '../lib/errors'
 import { accessToken } from './supabase'
 
 let health: Promise<VoiceStatus> | null = null
@@ -37,10 +39,12 @@ async function request<T>(input: string, init: RequestInit = {}): Promise<T> {
   const token = await accessToken()
   const headers = new Headers(init.headers)
   if (token) headers.set('Authorization', `Bearer ${token}`)
-  const res = await fetch(input, { ...init, headers })
+  const res = await fetch(input, { ...init, headers }).catch(() => {
+    throw new VoiceApiError(GENERIC_ERROR)
+  })
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new VoiceApiError(body.error ?? `Erro ${res.status} no servidor de voz.`)
+    throw new VoiceApiError(body.error ?? GENERIC_ERROR)
   }
   return res.json() as Promise<T>
 }
@@ -52,8 +56,8 @@ export const voiceApi = {
   /** Situação da voz clonada para a conta logada. */
   status(): Promise<VoiceStatus> {
     health ??= fetch('/api/health')
-      .then((r) => (r.ok ? (r.json() as Promise<{ elevenlabs: boolean }>) : { elevenlabs: false }))
-      .then(async (b) => ({ configured: b.elevenlabs, allowed: b.elevenlabs ? (await voiceApi.account()).allowed : false }))
+      .then((r) => (r.ok ? (r.json() as Promise<{ voice: boolean }>) : { voice: false }))
+      .then(async (b) => ({ configured: b.voice, allowed: b.voice ? (await voiceApi.account()).allowed : false }))
       .catch(() => ({ configured: false, allowed: false }))
       .then((s) => {
         if (!s.allowed) window.setTimeout(() => (health = null), 15_000) // tenta de novo depois

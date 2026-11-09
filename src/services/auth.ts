@@ -1,5 +1,6 @@
 import type { AuthError as SupabaseAuthError, User as SupabaseUser } from '@supabase/supabase-js'
 import type { User } from '../types'
+import { UserFacingError } from '../lib/errors'
 import { supabase } from './supabase'
 
 /** Contas reais com o Supabase Auth (e-mail e senha). */
@@ -9,7 +10,7 @@ export const DEMO_USER = {
   password: 'aconchego-demo',
 } as const
 
-export class AuthError extends Error {}
+export class AuthError extends UserFacingError {}
 
 const MESSAGES: Record<string, string> = {
   user_already_exists: 'Já existe uma conta com este e-mail. Tente entrar.',

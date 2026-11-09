@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'react'
 import lionReading from '../assets/lion-reading.webp'
 import lionSleeping from '../assets/lion-sleeping.webp'
 import type { Story } from '../types'
+import { GENERIC_ERROR } from '../data/messages'
+import { UserFacingError } from '../lib/errors'
 import { accessToken } from './supabase'
 
 /**
@@ -37,7 +39,7 @@ interface StoryRow {
   created_at: string
 }
 
-export class StoryApiError extends Error {
+export class StoryApiError extends UserFacingError {
   constructor(message: string, readonly status: number) {
     super(message)
   }
@@ -81,9 +83,11 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
     method: body === undefined ? 'GET' : 'POST',
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
     body: body === undefined ? undefined : JSON.stringify(body),
+  }).catch(() => {
+    throw new StoryApiError(GENERIC_ERROR, 0)
   })
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
-  if (!res.ok) throw new StoryApiError(data.error ?? 'Não foi possível falar com o servidor.', res.status)
+  if (!res.ok) throw new StoryApiError(data.error ?? GENERIC_ERROR, res.status)
   return data
 }
 

@@ -10,6 +10,7 @@ import { defaultUserData, demoUserData, userDataRepo } from '../services/userDat
 import { voiceApi } from '../services/voiceApi'
 import type { User } from '../types'
 import { AppContext, type AppActions, type AppState } from './appContext'
+import { userMessage } from '../lib/errors'
 
 function systemNotify(title: string, body: string) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
@@ -318,10 +319,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 },
           )
           systemNotify(VOICE_READY.title, VOICE_READY.body)
-          // A voz anterior (regravação) não é mais usada: apaga também na ElevenLabs.
+          // A voz anterior (regravação) não é mais usada: apaga também no servidor.
           if (previousId && previousId !== voiceId) voiceApi.deleteVoice(previousId).catch(() => undefined)
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'Erro desconhecido.'
+          const message = userMessage(err)
           update((d) => ({
             ...d,
             // Regravação que falhou: mantém a voz anterior funcionando.
@@ -345,7 +346,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             notification(
               'Voz excluída',
               voiceId
-                ? 'Sua voz foi apagada da ElevenLabs, junto com as gravações e narrações.'
+                ? 'Sua voz foi apagada, junto com as gravações e narrações.'
                 : 'Sua voz e as gravações foram apagadas deste aparelho.',
             ),
             ...d.notifications,

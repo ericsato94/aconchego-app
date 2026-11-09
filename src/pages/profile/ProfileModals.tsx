@@ -5,6 +5,7 @@ import { Toggle } from '../../components/Toggle'
 import { AuthError } from '../../services/auth'
 import { useApp } from '../../store/appContext'
 import { useToast } from '../../store/toastContext'
+import { userMessage } from '../../lib/errors'
 
 interface ModalProps {
   open: boolean
@@ -157,7 +158,7 @@ export function DeleteVoiceModal({ open, onClose }: ModalProps) {
       toast('Sua voz foi excluída', 'success')
       navigate('/')
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Não foi possível excluir agora. Tente de novo.', 'error')
+      toast(userMessage(err), 'error')
     } finally {
       setBusy(false)
     }

@@ -8,6 +8,7 @@ import { isChildName } from '../../data/greetings'
 import { customStories, StoryApiError, useCustomStories, type StoryMood, type StoryUsage } from '../../services/customStories'
 import { useApp } from '../../store/appContext'
 import './create.css'
+import { userMessage } from '../../lib/errors'
 
 const MOODS: Array<{ id: StoryMood; label: string }> = [
   { id: 'calma', label: 'Calminha' },
@@ -79,7 +80,7 @@ export default function CreateStory() {
       const status = err instanceof StoryApiError ? err.status : 0
       setBusy(false)
       if (status === 403) return setUpsell(true)
-      setError({ text: err instanceof Error ? err.message : 'Não foi possível criar a história.' })
+      setError({ text: userMessage(err) })
     }
   }
 

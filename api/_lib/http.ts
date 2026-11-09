@@ -1,19 +1,24 @@
 import { ElevenLabsError } from './elevenlabs.js'
 import { activePlan, UNLIMITED_PLAN } from './entitlements.js'
 import { HttpError, supabaseAdmin } from './supabaseAdmin.js'
+import { GENERIC_ERROR } from '../../src/data/messages.js'
 
 export const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } })
 
-/** Envolve um handler: converte erros conhecidos em respostas com mensagem em português. */
+/**
+ * Envolve um handler: só as mensagens escritas por nós (HttpError) chegam ao usuário. Erros de
+ * fornecedores e falhas inesperadas viram a mensagem padrão (detalhes ficam só no log).
+ */
 export function route(handler: (request: Request) => Promise<Response>) {
   return async (request: Request) => {
     try {
       return await handler(request)
     } catch (err) {
-      if (err instanceof HttpError || err instanceof ElevenLabsError) return json({ error: err.message }, err.status)
+      if (err instanceof HttpError) return json({ error: err.message }, err.status)
       console.error(err)
-      return json({ error: 'Erro inesperado no servidor.' }, 500)
+      const status = err instanceof ElevenLabsError && err.status === 429 ? 503 : 500
+      return json({ error: GENERIC_ERROR }, status)
     }
   }
 }

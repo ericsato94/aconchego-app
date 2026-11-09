@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { GENERIC_ERROR } from '../../src/data/messages.js'
 
 /** Cliente com a chave de serviço: só no servidor (ignora RLS — sempre conferir o dono antes). */
 let client: SupabaseClient | null = null
@@ -7,7 +8,7 @@ export function supabaseAdmin() {
   if (!client) {
     const url = process.env.SUPABASE_URL
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!url || !key) throw new HttpError(503, 'Servidor sem configuração do Supabase.')
+    if (!url || !key) throw new HttpError(503, GENERIC_ERROR)
     client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
   }
   return client
