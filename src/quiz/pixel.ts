@@ -11,7 +11,7 @@
  *   InitiateCheckout  — clicou para pagar (valor do plano)
  *   Purchase          — chegou à página de obrigado vindo do checkout (valor do plano, uma vez por compra)
  */
-export const META_PIXEL_ID = '1932425814373684'
+export const META_PIXEL_ID = '1142423431580261'
 
 type Fbq = ((...args: unknown[]) => void) & { callMethod?: (...args: unknown[]) => void; queue: unknown[]; loaded: boolean; version: string; push: Fbq }
 declare global {
