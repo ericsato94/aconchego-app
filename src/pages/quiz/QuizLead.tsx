@@ -7,6 +7,7 @@ import { quizState } from '../../quiz/state'
 import { saveLead } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
 import { userMessage } from '../../lib/errors'
+import { pixel } from '../../quiz/pixel'
 
 /** Máscara simples de WhatsApp brasileiro: (11) 91234-5678 */
 function maskPhone(value: string) {
@@ -44,6 +45,7 @@ export default function QuizLead() {
         answers: state.answers,
         identity: buildResult(state.answers).identityKey,
       })
+      pixel.lead()
       quizState.update({ name: name.trim(), leadSaved: true })
       navigate('/quiz/resultado', { replace: true })
     } catch (err) {

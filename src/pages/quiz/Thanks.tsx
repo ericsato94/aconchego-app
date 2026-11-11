@@ -1,9 +1,14 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import lionSleeping from '../../assets/lion-sleeping.webp'
+import { pixel } from '../../quiz/pixel'
 import { QuizLayout } from './QuizLayout'
 
 /** Página para onde a plataforma de pagamento redireciona depois da compra. */
 export default function Thanks() {
+  useEffect(() => {
+    pixel.purchase()
+  }, [])
   return (
     <QuizLayout>
       <section className="quiz-loading">

@@ -9,6 +9,7 @@ import { buildResult } from '../../quiz/result'
 import { quizState } from '../../quiz/state'
 import { track, trafficSource } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
+import { pixel } from '../../quiz/pixel'
 
 /** Página de vendas, personalizada pelas respostas do quiz. */
 export default function SalesPage() {
@@ -21,6 +22,7 @@ export default function SalesPage() {
   useEffect(() => {
     if (!state?.leadSaved || state.viewed?.sales) return
     void track({ sessionId: state.sessionId, type: 'sales_viewed' })
+    pixel.viewContent('Aconchego')
     quizState.update({ viewed: { ...state.viewed, sales: true } })
   }, [state])
 
@@ -32,6 +34,7 @@ export default function SalesPage() {
 
   const checkout = () => {
     void track({ sessionId: state.sessionId, type: 'checkout_started', plan: plan.id })
+    pixel.initiateCheckout({ id: plan.id, name: plan.name, value: plan.value })
     if (plan.checkoutUrl) {
       // A sessão do quiz vai em "sck" (a Cakto devolve no aviso de compra) e a origem do anúncio
       // segue junto nos parâmetros UTM, para aparecer também nos relatórios da plataforma.

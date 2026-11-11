@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/logo.webp'
 import { Icon } from '../../components/Icon'
 import './quiz.css'
+import { pixel } from '../../quiz/pixel'
 
 interface Props {
   children: ReactNode
@@ -16,6 +17,10 @@ interface Props {
 /** Moldura das telas do quiz e da página de vendas: fundo céu, logo e barra de progresso. */
 export function QuizLayout({ children, progress, progressLabel, back, wide }: Props) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  useEffect(() => {
+    pixel.pageView()
+  }, [pathname])
   return (
     <div className="quiz">
       <header className="quiz__top">

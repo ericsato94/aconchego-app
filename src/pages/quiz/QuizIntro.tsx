@@ -6,6 +6,7 @@ import { QUIZ } from '../../quiz/config'
 import { quizState } from '../../quiz/state'
 import { captureSource, track } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
+import { pixel } from '../../quiz/pixel'
 
 export default function QuizIntro() {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export default function QuizIntro() {
   const start = () => {
     const state = quizState.start()
     void track({ sessionId: state.sessionId, type: 'quiz_started' })
+    pixel.quizStart()
     navigate('/quiz/1')
   }
 

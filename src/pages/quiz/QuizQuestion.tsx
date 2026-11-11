@@ -6,6 +6,7 @@ import { quizState } from '../../quiz/state'
 import { track } from '../../quiz/track'
 import { QuizImage } from './QuizImage'
 import { QuizLayout } from './QuizLayout'
+import { pixel } from '../../quiz/pixel'
 
 /** Uma pergunta por tela. A resposta avança sozinha depois de um instante de destaque. */
 export default function QuizQuestion() {
@@ -37,6 +38,7 @@ export default function QuizQuestion() {
       } else {
         quizState.update({ completed: true })
         void track({ sessionId: state.sessionId, type: 'quiz_completed' })
+        pixel.quizComplete()
         navigate('/quiz/analisando')
       }
     }, 320)
