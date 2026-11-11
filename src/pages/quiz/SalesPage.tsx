@@ -43,7 +43,8 @@ export default function SalesPage() {
       for (const [key, value] of Object.entries(trafficSource())) {
         if (value && key.startsWith('utm_')) url.searchParams.set(key, value)
       }
-      window.location.href = url.toString()
+      // Pequena pausa para o evento do pixel sair antes de trocar de página.
+      window.setTimeout(() => (window.location.href = url.toString()), 400)
     } else {
       navigate(`/cadastro?origem=quiz&plano=${plan.id}`)
     }
