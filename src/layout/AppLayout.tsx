@@ -9,6 +9,7 @@ import { NAV_ITEMS } from './navItems'
 import { SleepOverlay } from './SleepOverlay'
 import './AppLayout.css'
 import { InstallPrompt } from '../components/InstallPrompt'
+import { PaidWelcome } from '../components/PaidWelcome'
 
 export function AppLayout() {
   const { pathname } = useLocation()
@@ -82,6 +83,7 @@ export function AppLayout() {
       </nav>
 
       <SleepOverlay />
+      <PaidWelcome />
       <InstallPrompt />
     </div>
   )

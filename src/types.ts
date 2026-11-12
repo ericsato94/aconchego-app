@@ -84,6 +84,8 @@ export interface Settings {
   tourDoneAt?: string
   /** Última vez que a pessoa dispensou o convite para instalar o app. */
   installDismissedAt?: string
+  /** Plano pago para o qual o popup de boas-vindas já foi mostrado (aparece de novo se mudar de plano). */
+  paidWelcomeFor?: PlanId
 }
 
 export interface UserData {

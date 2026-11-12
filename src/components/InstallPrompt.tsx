@@ -22,8 +22,10 @@ export function InstallPrompt() {
 
   const dismissedAt = data.settings.installDismissedAt
   const recentlyDismissed = dismissedAt && now - new Date(dismissedAt).getTime() < ASK_AGAIN_DAYS * 86_400_000
+  // Assinante novo: o popup de boas-vindas do plano vem antes.
+  const paidWelcomePending = (data.plan === 'monthly' || data.plan === 'annual') && data.settings.paidWelcomeFor !== data.plan
   const open =
-    !closed && isMobile() && !isStandalone() && data.history.length > 0 && Boolean(data.settings.tourDoneAt) && !recentlyDismissed
+    !closed && !paidWelcomePending && isMobile() && !isStandalone() && data.history.length > 0 && Boolean(data.settings.tourDoneAt) && !recentlyDismissed
   if (!open) return null
 
   const inApp = Boolean(inAppBrowser())

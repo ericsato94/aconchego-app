@@ -1,0 +1,126 @@
+.paid-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.paid-welcome__art {
+  width: 120px;
+  animation: paid-bounce 0.7s var(--ease) both;
+}
+
+.paid-welcome__lead {
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.paid-welcome__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: 0;
+  list-style: none;
+}
+
+.paid-welcome__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--c-primary-softer);
+}
+
+.paid-welcome__list li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paid-welcome__list strong {
+  font-size: var(--fs-sm);
+  color: var(--c-navy);
+}
+
+.paid-welcome__list small {
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--c-text-muted);
+}
+
+.paid-welcome__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-sun);
+  color: var(--c-brown);
+}
+
+/* Confete por cima de tudo, sem bloquear os toques. */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) + 1);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti i {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-fall 3s cubic-bezier(0.25, 0.6, 0.45, 1) forwards;
+}
+
+.confetti i.is-round {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift), 105vh) rotate(var(--spin));
+  }
+}
+
+@keyframes paid-bounce {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
+
+  .paid-welcome__art {
+    animation: none;
+  }
+}
