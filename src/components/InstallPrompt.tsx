@@ -10,8 +10,8 @@ import { Modal } from './Modal'
 const ASK_AGAIN_DAYS = 3
 
 /**
- * Convite para instalar o app (PWA) no celular. Aparece depois que a pessoa ouviu a primeira
- * história e terminou o tour; não aparece para quem já abriu pelo app instalado.
+ * Convite para instalar o app (PWA) no celular. No primeiro acesso aparece logo depois do tour
+ * (e das boas-vindas do plano pago); não aparece para quem já abriu pelo app instalado.
  * No navegador do Instagram/Facebook, ensina primeiro a abrir no navegador do aparelho.
  */
 export function InstallPrompt() {
@@ -25,7 +25,7 @@ export function InstallPrompt() {
   // Assinante novo: o popup de boas-vindas do plano vem antes.
   const paidWelcomePending = (data.plan === 'monthly' || data.plan === 'annual') && data.settings.paidWelcomeFor !== data.plan
   const open =
-    !closed && !paidWelcomePending && isMobile() && !isStandalone() && data.history.length > 0 && Boolean(data.settings.tourDoneAt) && !recentlyDismissed
+    !closed && !paidWelcomePending && isMobile() && !isStandalone() && Boolean(data.settings.tourDoneAt) && !recentlyDismissed
   if (!open) return null
 
   const inApp = Boolean(inAppBrowser())
