@@ -955,3 +955,33 @@
     width: 100%;
   }
 }
+
+.thanks-inapp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-5);
+  text-align: left;
+}
+
+.thanks-inapp__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+  color: var(--c-navy);
+}
+
+.thanks-inapp__text {
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.thanks-inapp__skip {
+  align-self: center;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-muted);
+  text-decoration: underline;
+}

@@ -1,5 +1,7 @@
+import { useNavigate } from 'react-router-dom'
 import { BackButton } from '../../components/BackButton'
 import { Icon } from '../../components/Icon'
+import { useApp } from '../../store/appContext'
 import './info.css'
 
 const FAQ = [
@@ -30,6 +32,12 @@ const FAQ = [
 ]
 
 export default function Help() {
+  const { actions } = useApp()
+  const navigate = useNavigate()
+  const replayTour = () => {
+    actions.updateSettings({ tourDoneAt: undefined })
+    navigate('/')
+  }
   return (
     <div className="container page">
       <header className="info-head">
@@ -39,6 +47,14 @@ export default function Help() {
           <p className="page-subtitle">Respostas rápidas para as dúvidas mais comuns.</p>
         </div>
       </header>
+      <button className="card help__tour" onClick={replayTour}>
+        <Icon name="sparkles" size={22} />
+        <span>
+          <strong>Rever o tour do app</strong>
+          <small>Mostra de novo, passo a passo, onde fica cada coisa.</small>
+        </span>
+        <Icon name="chevronRight" size={20} />
+      </button>
       <div className="faq">
         {FAQ.map((item) => (
           <details key={item.q} className="faq__item card">

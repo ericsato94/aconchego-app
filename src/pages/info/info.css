@@ -122,3 +122,31 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+.help__tour {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  text-align: left;
+  color: var(--c-navy);
+}
+
+.help__tour > svg:first-child {
+  color: var(--c-primary);
+  flex-shrink: 0;
+}
+
+.help__tour span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.help__tour small {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}

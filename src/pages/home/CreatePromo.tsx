@@ -6,7 +6,7 @@ import { useApp } from '../../store/appContext'
 export function CreatePromo() {
   const { activeChild } = useApp()
   return (
-    <Link to="/criar-historia" className="create-promo">
+    <Link to="/criar-historia" className="create-promo" data-tour="create">
       <span className="create-promo__icon" aria-hidden="true">
         <Icon name="sparkles" size={26} />
       </span>

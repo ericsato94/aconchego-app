@@ -1,0 +1,120 @@
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+}
+
+/* Recorte iluminado: a sombra enorme escurece todo o resto da tela. */
+.tour__hole {
+  position: fixed;
+  border-radius: var(--r-lg);
+  box-shadow:
+    0 0 0 4px rgb(255 255 255 / 0.9),
+    0 0 0 9999px rgb(12 20 48 / 0.62);
+  transition:
+    top 0.35s var(--ease),
+    left 0.35s var(--ease),
+    width 0.35s var(--ease),
+    height 0.35s var(--ease);
+  pointer-events: none;
+}
+
+.tour__card {
+  position: fixed;
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--sh-lg);
+  color: var(--c-text);
+  outline: none;
+  animation: tour-in 0.25s var(--ease);
+  transition:
+    top 0.35s var(--ease),
+    left 0.35s var(--ease);
+}
+
+.tour__arrow {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  background: var(--c-surface);
+  transform: rotate(45deg);
+}
+
+.tour__arrow--top {
+  top: -8px;
+}
+
+.tour__arrow--bottom {
+  bottom: -8px;
+}
+
+.tour__count {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--c-primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tour__title {
+  margin-top: var(--sp-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+  color: var(--c-navy);
+}
+
+.tour__text {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.tour__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.tour__skip {
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.tour__dots {
+  display: flex;
+  gap: 5px;
+  margin-right: auto;
+  margin-left: var(--sp-2);
+}
+
+.tour__dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-border-strong);
+}
+
+.tour__dots span.is-on {
+  background: var(--c-primary);
+}
+
+@keyframes tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__hole,
+  .tour__card {
+    transition: none;
+    animation: none;
+  }
+}

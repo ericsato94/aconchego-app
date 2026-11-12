@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { Icon } from '../../components/Icon'
 import { StoryCard } from '../../components/StoryCard'
+import { Tour, type TourStep } from '../../components/Tour'
 import { firstName } from '../../lib/format'
 import { catalog } from '../../services/catalog'
 import { useCustomStories } from '../../services/customStories'
@@ -15,9 +16,32 @@ import { SleepPromo } from './SleepPromo'
 import { VoiceHero } from './VoiceHero'
 import './home.css'
 
+/** Tour do primeiro acesso (passos sem elemento na tela são pulados). */
+const TOUR: TourStep[] = [
+  { target: '[data-tour="voice"]', title: 'Comece pela sua voz', text: 'Aqui você grava a sua voz uma vez. Depois, é ela que conta as histórias para o seu filho.' },
+  { target: '[data-tour="stories"]', title: 'Escolha uma história', text: 'Toque em uma história e aperte o play. O texto acompanha a narração, parágrafo por parágrafo.' },
+  { target: '[data-tour="create"]', title: 'Crie histórias novas', text: 'Conte um tema e a gente escreve uma história só para o seu filho, com ele como personagem.' },
+  { target: '[data-tour="nav-moon"]', title: 'Hora de dormir', text: 'Tela escura, volume baixinho e um timer que desliga a história sozinho.' },
+  { target: '[data-tour="nav-gear"]', title: 'Seu perfil', text: 'Ajuste a narração, veja o seu plano e encontre ajuda sempre que precisar.' },
+]
+
 export default function Home() {
-  const { user, data } = useApp()
+  const { user, data, actions } = useApp()
   const [notifOpen, setNotifOpen] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
+  const tourDone = Boolean(data.settings.tourDoneAt)
+
+  // Primeiro acesso: abre o tour depois que a tela se acomoda.
+  useEffect(() => {
+    if (tourDone) return
+    const timer = window.setTimeout(() => setTourOpen(true), 700)
+    return () => window.clearTimeout(timer)
+  }, [tourDone])
+
+  const finishTour = () => {
+    setTourOpen(false)
+    actions.updateSettings({ tourDoneAt: new Date().toISOString() })
+  }
   useCustomStories()
   const unread = data.notifications.some((n) => !n.read)
 
@@ -60,7 +84,7 @@ export default function Home() {
             </section>
           )}
 
-          <section className="section">
+          <section className="section" data-tour="stories">
             <div className="section-head">
               <h2 className="section-title">{isFree ? 'Histórias gratuitas' : 'Histórias para hoje'}</h2>
               <Link to="/historias" className="link-more home__more-desktop">
@@ -82,6 +106,7 @@ export default function Home() {
       </div>
 
       <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+      {tourOpen && !tourDone && <Tour steps={TOUR} onDone={finishTour} />}
     </div>
   )
 }

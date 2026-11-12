@@ -80,6 +80,10 @@ export interface Settings {
   sleepVolume: number
   sleepTimerMin: number
   sleepAutoNext: boolean
+  /** Quando o tour do primeiro acesso foi concluído ou pulado. */
+  tourDoneAt?: string
+  /** Última vez que a pessoa dispensou o convite para instalar o app. */
+  installDismissedAt?: string
 }
 
 export interface UserData {

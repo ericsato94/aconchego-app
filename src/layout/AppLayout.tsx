@@ -8,6 +8,7 @@ import { MiniPlayer } from './MiniPlayer'
 import { NAV_ITEMS } from './navItems'
 import { SleepOverlay } from './SleepOverlay'
 import './AppLayout.css'
+import { InstallPrompt } from '../components/InstallPrompt'
 
 export function AppLayout() {
   const { pathname } = useLocation()
@@ -26,6 +27,7 @@ export function AppLayout() {
               key={item.to}
               to={item.to}
               className="sidebar__item"
+              data-tour={`nav-${item.icon}`}
               aria-current={isActive(item.match) ? 'page' : undefined}
             >
               <Icon name={item.icon} size={22} />
@@ -70,6 +72,7 @@ export function AppLayout() {
             key={item.to}
             to={item.to}
             className="bottom-nav__item"
+            data-tour={`nav-${item.icon}`}
             aria-current={isActive(item.match) ? 'page' : undefined}
           >
             <Icon name={item.icon} size={26} />
@@ -79,6 +82,7 @@ export function AppLayout() {
       </nav>
 
       <SleepOverlay />
+      <InstallPrompt />
     </div>
   )
 }

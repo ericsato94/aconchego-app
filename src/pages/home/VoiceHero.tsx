@@ -82,7 +82,7 @@ export function VoiceHero() {
   }
 
   return (
-    <section className="hero" aria-label="Sua voz">
+    <section className="hero" aria-label="Sua voz" data-tour="voice">
       <span className="hero__star hero__star--1" aria-hidden="true" />
       <span className="hero__star hero__star--2" aria-hidden="true" />
       <span className="hero__star hero__star--3" aria-hidden="true" />
