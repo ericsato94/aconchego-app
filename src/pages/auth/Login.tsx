@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '../../assets/logo.webp'
 import { BackButton } from '../../components/BackButton'
-import { AuthError, DEMO_USER } from '../../services/auth'
+import { AuthError } from '../../services/auth'
 import { useApp } from '../../store/appContext'
 import { AuthLayout } from './AuthLayout'
 
@@ -52,18 +52,8 @@ export default function Login() {
         </button>
       </form>
 
-      <div className="demo-box">
-        <span>
-          <strong>Quer só conhecer?</strong> Entre na conta de demonstração ({DEMO_USER.email}) com histórico, voz pronta e
-          a Sofia já cadastrada.
-        </span>
-        <button className="btn btn--secondary btn--sm" onClick={() => run(actions.signInDemo)} disabled={busy}>
-          Entrar com conta de demonstração
-        </button>
-      </div>
-
       <p className="auth-switch">
-        Ainda não tem conta? <Link to="/cadastro">Criar conta</Link>
+        Ainda não tem conta? <Link to="/cadastro">Criar conta grátis</Link>
       </p>
     </AuthLayout>
   )
