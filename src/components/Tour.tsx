@@ -26,12 +26,22 @@ function visible(selector: string) {
  * com setinha apontando para onde tocar. Passos cujo elemento não está na tela são pulados.
  */
 export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void }) {
-  const [active] = useState(() => steps.filter((s) => visible(s.target)))
+  const [active, setActive] = useState(() => steps.filter((s) => visible(s.target)))
   const [index, setIndex] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [cardH, setCardH] = useState(180)
   const cardRef = useRef<HTMLDivElement>(null)
   const step = active[index]
+
+  // A tela ainda pode estar carregando: espera os elementos aparecerem antes de começar.
+  useEffect(() => {
+    if (active.length) return
+    const timer = window.setInterval(() => {
+      const found = steps.filter((s) => visible(s.target))
+      if (found.length) setActive(found)
+    }, 400)
+    return () => window.clearInterval(timer)
+  }, [active.length, steps])
 
   // Rola até o elemento da vez e acompanha a posição dele (rolagem, teclado, giro da tela).
   useEffect(() => {
@@ -71,10 +81,6 @@ export function Tour({ steps, onDone }: { steps: TourStep[]; onDone: () => void 
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [next, onDone])
-
-  useEffect(() => {
-    if (!active.length) onDone()
-  }, [active.length, onDone])
 
   if (!step || !rect) return null
 

@@ -21,7 +21,7 @@ const ITEMS = [
 ]
 
 export default function Consent() {
-  const { actions, data } = useApp()
+  const { actions } = useApp()
   const navigate = useNavigate()
   const [checked, setChecked] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
@@ -33,7 +33,8 @@ export default function Consent() {
     setError('')
     try {
       await actions.acceptConsent(checked)
-      navigate(data.voice.status === 'none' ? '/gravar-voz' : '/', { replace: true })
+      // Vai para o início, onde o tour do primeiro acesso começa (o 1º passo é gravar a voz).
+      navigate('/', { replace: true })
     } catch {
       setError('Não foi possível registrar o seu aceite. Verifique a conexão e tente de novo.')
       setBusy(false)
