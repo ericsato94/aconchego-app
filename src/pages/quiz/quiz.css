@@ -1084,3 +1084,76 @@
 .quiz-intro__perks svg {
   color: var(--c-primary);
 }
+
+/* ---------- Oferta: abre direto na escolha do plano ---------- */
+.sales__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: center;
+}
+
+.sales__top-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: 1.15;
+  color: var(--c-maroon);
+}
+
+.sales__top-sub {
+  max-width: 34ch;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--c-text);
+}
+
+.sales__plans-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+  padding-top: 10px; /* espaço do selo "Recomendado" */
+}
+
+.sales__plans-grid .sales__plan {
+  padding: var(--sp-4) var(--sp-3);
+  border-radius: var(--r-lg);
+}
+
+.sales__plans-grid .sales__price strong {
+  display: block;
+  font-size: var(--fs-xl);
+}
+
+.sales__plans-grid .sales__plan ul {
+  font-size: var(--fs-xs);
+}
+
+.sales__plans-grid .sales__ribbon {
+  top: -12px;
+  right: 50%;
+  transform: translateX(50%);
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.sales__offer .sales__checkout {
+  margin-top: 0;
+}
+
+@media (min-width: 640px) {
+  .sales__top-title {
+    font-size: var(--fs-3xl);
+  }
+
+  .sales__offer {
+    display: flex;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  .sales__benefits-wrap {
+    max-width: 640px;
+    margin-inline: auto;
+  }
+}

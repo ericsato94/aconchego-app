@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import lionReading from '../../assets/lion-reading.webp'
 import { Icon } from '../../components/Icon'
 import { StoryCover } from '../../components/StoryCover'
 import { firstName } from '../../lib/format'
-import { QUIZ, fill } from '../../quiz/config'
+import { QUIZ } from '../../quiz/config'
 import { buildResult } from '../../quiz/result'
 import { quizState } from '../../quiz/state'
 import { track, trafficSource } from '../../quiz/track'
@@ -78,16 +77,55 @@ export default function SalesPage() {
   return (
     <QuizLayout wide back="/quiz/resultado">
       <article className="sales">
-        <section className="sales__hero" ref={heroRef}>
-          <div className="sales__hero-text">
-            <span className="quiz-eyebrow">{result.identity.name}</span>
-            <h1 className="quiz-title quiz-title--hero">{fill(O.headline, { name })}</h1>
-            <p className="quiz-lead">{O.subheadline}</p>
-            <a href="#oferta" className="btn btn--primary quiz-cta">
-              Ver planos e preços <Icon name="chevronDown" size={20} />
-            </a>
+        {/* Quem chega aqui já pediu o plano: a página abre na escolha do plano, sem rolar. */}
+        <section className="sales__top" ref={heroRef}>
+          <span className="quiz-eyebrow">{result.identity.name}</span>
+          <h1 className="sales__top-title">{name ? `${name}, escolha o seu plano` : 'Escolha o seu plano'}</h1>
+          <p className="sales__top-sub">{O.subheadline}</p>
+        </section>
+
+        <section className="sales__offer" id="oferta">
+          <div className="sales__plans" role="radiogroup" aria-label="Escolha o plano" ref={plansRef}>
+            <div className="sales__plans-grid">
+            {O.plans.map((p) => (
+              <button
+                key={p.id}
+                role="radio"
+                aria-checked={planId === p.id}
+                className="sales__plan"
+                onClick={() => setPlanId(p.id)}
+              >
+                {p.id === result.recommendedPlan && <span className="sales__ribbon">{O.recommendedLabel}</span>}
+                <span className="sales__plan-name">{p.name}</span>
+                <span className="sales__price">
+                  <strong>{p.price}</strong> {p.period}
+                </span>
+                {p.note && <span className="sales__note">{p.note}</span>}
+                <ul role="list">
+                  {p.features.map((f) => (
+                    <li key={f}>
+                      <Icon name="check" size={16} /> {f}
+                    </li>
+                  ))}
+                </ul>
+              </button>
+            ))}
+            </div>
+            <button className="btn btn--sun btn--block sales__checkout" onClick={checkout}>
+              {O.checkoutButton} · {plan.price}
+            </button>
+            {O.guarantee && (
+              <p className="sales__guarantee">
+                <span className="sales__guarantee-badge" aria-hidden="true">
+                  <Icon name="shield" size={22} />
+                </span>
+                <span>{O.guarantee}</span>
+              </p>
+            )}
+            <Link to="/cadastro?origem=quiz" className="btn btn--ghost btn--block btn--sm">
+              {O.freeAlternative}
+            </Link>
           </div>
-          <img className="sales__hero-art" src={lionReading} alt="" />
         </section>
 
         {result.painText && (
@@ -134,7 +172,7 @@ export default function SalesPage() {
           </section>
         )}
 
-        <section className="sales__offer" id="oferta">
+        <section className="sales__section sales__benefits-wrap">
           <div className="sales__benefits">
             <h2 className="sales__h2">O que você recebe</h2>
             <ul role="list">
@@ -144,46 +182,6 @@ export default function SalesPage() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="sales__plans" role="radiogroup" aria-label="Escolha o plano" ref={plansRef}>
-            {O.plans.map((p) => (
-              <button
-                key={p.id}
-                role="radio"
-                aria-checked={planId === p.id}
-                className="sales__plan"
-                onClick={() => setPlanId(p.id)}
-              >
-                {p.id === result.recommendedPlan && <span className="sales__ribbon">{O.recommendedLabel}</span>}
-                <span className="sales__plan-name">{p.name}</span>
-                <span className="sales__price">
-                  <strong>{p.price}</strong> {p.period}
-                </span>
-                {p.note && <span className="sales__note">{p.note}</span>}
-                <ul role="list">
-                  {p.features.map((f) => (
-                    <li key={f}>
-                      <Icon name="check" size={16} /> {f}
-                    </li>
-                  ))}
-                </ul>
-              </button>
-            ))}
-            <button className="btn btn--sun btn--block sales__checkout" onClick={checkout}>
-              {O.checkoutButton} · {plan.price}
-            </button>
-            {O.guarantee && (
-              <p className="sales__guarantee">
-                <span className="sales__guarantee-badge" aria-hidden="true">
-                  <Icon name="shield" size={22} />
-                </span>
-                <span>{O.guarantee}</span>
-              </p>
-            )}
-            <Link to="/cadastro?origem=quiz" className="btn btn--ghost btn--block btn--sm">
-              {O.freeAlternative}
-            </Link>
           </div>
         </section>
 
