@@ -145,6 +145,13 @@
   width: min(64vw, 260px);
 }
 
+/* Celulares com pouca altura (ex.: navegador do Instagram): leão menor para o botão caber sem rolar. */
+@media (max-width: 639px) and (max-height: 760px) {
+  .quiz-intro__art {
+    width: min(42vw, 170px);
+  }
+}
+
 .quiz-intro__art img {
   width: 100%;
   filter: drop-shadow(0 10px 24px rgb(47 155 239 / 0.2));
@@ -811,19 +818,6 @@
   margin-top: var(--sp-2);
 }
 
-.sales__guarantee {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: var(--fs-sm);
-  color: var(--c-text);
-}
-
-.sales__guarantee svg {
-  color: var(--c-sky);
-}
-
 /* ---------- Tablet e desktop ---------- */
 
 @media (min-width: 640px) {
@@ -984,4 +978,109 @@
   font-weight: 600;
   color: var(--c-text-muted);
   text-decoration: underline;
+}
+
+.sales__guarantee {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: #eaf7ec;
+  border: 1px solid #bfe3c4;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  color: #2e6b36;
+}
+
+.sales__guarantee-badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--c-green);
+  color: #fff;
+}
+
+/* Barra fixa de compra no celular (some no topo e quando os planos estão na tela). */
+.sales__sticky {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--gutter) calc(var(--sp-3) + var(--safe-bottom));
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: 0 -6px 24px rgb(27 42 92 / 0.12);
+  animation: sales-sticky-in 0.25s var(--ease);
+}
+
+.sales__sticky-price {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.sales__sticky-price small {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+.sales__sticky-price strong {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--c-navy);
+}
+
+.sales__sticky-btn {
+  flex: 1;
+}
+
+@keyframes sales-sticky-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (min-width: 900px) {
+  .sales__sticky {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sales__sticky {
+    animation: none;
+  }
+}
+
+.quiz-intro__perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0;
+  list-style: none;
+}
+
+.quiz-intro__perks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--sp-3);
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.85);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--c-navy);
+}
+
+.quiz-intro__perks svg {
+  color: var(--c-primary);
 }

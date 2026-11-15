@@ -2,11 +2,15 @@
 export interface Metrics {
   days: number
   funnel: {
+    /** Abriram a página do quiz (antes de começar). Ausente até a migração do banco. */
+    landing?: number
     started: number
     completed: number
     leads: number
     results: number
     sales: number
+    /** Rolaram a oferta até os planos/preços. */
+    engaged?: number
     checkout: number
     purchases: number
     revenue: number

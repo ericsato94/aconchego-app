@@ -1,3 +1,18 @@
+import { registerSW } from 'virtual:pwa-register'
+
+/**
+ * Ativa o service worker (app offline + instalação). Não roda no funil de vendas (quiz/oferta):
+ * na 1ª visita ele baixa ~2 MB do app inteiro, disputando a internet com a página do anúncio.
+ */
+let registered = false
+export function registerServiceWorker() {
+  if (registered || typeof window === 'undefined') return
+  registered = true
+  registerSW({ immediate: true })
+}
+
+export const isFunnelPath = (path: string) => /^\/(quiz|oferta)(\/|$)/.test(path)
+
 /** Captura o convite de instalação do navegador (Chrome/Edge/Android) para oferecer um botão próprio. */
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>

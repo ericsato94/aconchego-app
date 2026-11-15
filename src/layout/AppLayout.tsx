@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import logo from '../assets/logo.webp'
 import { Avatar } from '../components/Avatar'
 import { Icon } from '../components/Icon'
 import { InstallButton } from '../components/InstallButton'
+import { registerServiceWorker } from '../services/pwa'
 import { useApp } from '../store/appContext'
 import { MiniPlayer } from './MiniPlayer'
 import { NAV_ITEMS } from './navItems'
@@ -12,6 +14,8 @@ import { InstallPrompt } from '../components/InstallPrompt'
 import { PaidWelcome } from '../components/PaidWelcome'
 
 export function AppLayout() {
+  // Quem chegou pelo quiz ativa o service worker ao entrar no app.
+  useEffect(registerServiceWorker, [])
   const { pathname } = useLocation()
   const { data, activeChild } = useApp()
   const isActive = (match: RegExp) => match.test(pathname)

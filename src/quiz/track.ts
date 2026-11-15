@@ -9,6 +9,8 @@ export type QuizEventType =
   | 'result_viewed'
   | 'sales_viewed'
   | 'checkout_started'
+  | 'landing_viewed'
+  | 'offer_engaged'
 
 interface EventPayload {
   sessionId: string
@@ -51,8 +53,13 @@ export function trafficSource(): Record<string, string | null> {
   }
 }
 
+/** Navegador automatizado (verificadores de link, robôs): não entra nas métricas. */
+const isAutomated = () => typeof navigator !== 'undefined' && navigator.webdriver === true
+
 export function track(payload: EventPayload) {
-  const body = JSON.stringify(payload.type === 'quiz_started' ? { ...payload, source: trafficSource() } : payload)
+  if (isAutomated()) return Promise.resolve()
+  const withSource = payload.type === 'quiz_started' || payload.type === 'landing_viewed'
+  const body = JSON.stringify(withSource ? { ...payload, source: trafficSource() } : payload)
   // keepalive: o evento chega mesmo se a página for trocada logo em seguida (ex.: checkout).
   return fetch('/api/quiz/event', {
     method: 'POST',

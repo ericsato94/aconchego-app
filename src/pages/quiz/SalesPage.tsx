@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import lionReading from '../../assets/lion-reading.webp'
 import { Icon } from '../../components/Icon'
@@ -18,6 +18,31 @@ export default function SalesPage() {
   const result = state ? buildResult(state.answers) : null
   const O = QUIZ.offer
   const [planId, setPlanId] = useState(result?.recommendedPlan ?? O.plans[0].id)
+  const heroRef = useRef<HTMLElement>(null)
+  const plansRef = useRef<HTMLDivElement>(null)
+  const [heroVisible, setHeroVisible] = useState(true)
+  const [plansVisible, setPlansVisible] = useState(false)
+
+  // Barra fixa de compra: aparece depois do topo e some quando os planos estão na tela.
+  // Chegar nos planos também conta como evento (mostra quantos veem o preço).
+  useEffect(() => {
+    const hero = heroRef.current
+    const plans = plansRef.current
+    if (!hero || !plans || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === hero) setHeroVisible(entry.isIntersecting)
+        if (entry.target === plans) {
+          setPlansVisible(entry.isIntersecting)
+          const sessionId = quizState.get()?.sessionId
+          if (entry.isIntersecting && sessionId && quizState.markSent('engaged')) void track({ sessionId, type: 'offer_engaged' })
+        }
+      }
+    })
+    observer.observe(hero)
+    observer.observe(plans)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     if (!state?.leadSaved || state.viewed?.sales) return
@@ -53,13 +78,13 @@ export default function SalesPage() {
   return (
     <QuizLayout wide back="/quiz/resultado">
       <article className="sales">
-        <section className="sales__hero">
+        <section className="sales__hero" ref={heroRef}>
           <div className="sales__hero-text">
             <span className="quiz-eyebrow">{result.identity.name}</span>
             <h1 className="quiz-title quiz-title--hero">{fill(O.headline, { name })}</h1>
             <p className="quiz-lead">{O.subheadline}</p>
             <a href="#oferta" className="btn btn--primary quiz-cta">
-              Ver a oferta <Icon name="chevronDown" size={20} />
+              Ver planos e preços <Icon name="chevronDown" size={20} />
             </a>
           </div>
           <img className="sales__hero-art" src={lionReading} alt="" />
@@ -121,7 +146,7 @@ export default function SalesPage() {
             </ul>
           </div>
 
-          <div className="sales__plans" role="radiogroup" aria-label="Escolha o plano">
+          <div className="sales__plans" role="radiogroup" aria-label="Escolha o plano" ref={plansRef}>
             {O.plans.map((p) => (
               <button
                 key={p.id}
@@ -150,7 +175,10 @@ export default function SalesPage() {
             </button>
             {O.guarantee && (
               <p className="sales__guarantee">
-                <Icon name="shield" size={18} /> {O.guarantee}
+                <span className="sales__guarantee-badge" aria-hidden="true">
+                  <Icon name="shield" size={22} />
+                </span>
+                <span>{O.guarantee}</span>
               </p>
             )}
             <Link to="/cadastro?origem=quiz" className="btn btn--ghost btn--block btn--sm">
@@ -158,6 +186,18 @@ export default function SalesPage() {
             </Link>
           </div>
         </section>
+
+        {!heroVisible && !plansVisible && (
+          <div className="sales__sticky" role="region" aria-label="Comprar">
+            <span className="sales__sticky-price">
+              <small>{plan.name}</small>
+              <strong>{plan.price}</strong>
+            </span>
+            <button className="btn btn--sun sales__sticky-btn" onClick={checkout}>
+              {O.checkoutButton}
+            </button>
+          </div>
+        )}
 
         <section className="sales__section">
           <h2 className="sales__h2">Perguntas frequentes</h2>

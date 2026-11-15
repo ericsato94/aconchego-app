@@ -13,7 +13,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const SLUG = /^[a-z0-9-]{1,40}$/
 const CLIENT_EVENTS = new Set([
   'quiz_started', 'question_answered', 'quiz_completed', 'result_viewed', 'sales_viewed', 'checkout_started',
+  'landing_viewed', 'offer_engaged',
 ])
+/** Eventos que abrem a sessão e gravam a origem do tráfego. */
+const SESSION_START = new Set(['quiz_started', 'landing_viewed'])
+/** Robôs e verificadores de link (ex.: o da Meta conferindo o anúncio): não entram nas métricas. */
+const BOT_UA = /bot\b|crawl|spider|slurp|facebookexternalhit|meta-externalagent|facebookcatalog|headlesschrome|lighthouse|preview|inspectiontool|adsbot|python-requests|curl\//i
 
 const text = (value: unknown, max: number) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null
@@ -28,9 +33,9 @@ async function body(request: Request) {
   }
 }
 
-/** Garante a sessão; no início do quiz grava a origem do tráfego. */
-async function ensureSession(sessionId: string, source?: Record<string, unknown>) {
-  const row = {
+/** Garante a sessão; no início do quiz grava a origem do tráfego (e o navegador, para auditar robôs). */
+async function ensureSession(sessionId: string, source?: Record<string, unknown>, userAgent?: string | null) {
+  const row: Record<string, unknown> = {
     id: sessionId,
     utm_source: text(source?.utm_source, 80),
     utm_medium: text(source?.utm_medium, 80),
@@ -39,9 +44,14 @@ async function ensureSession(sessionId: string, source?: Record<string, unknown>
     landing_path: text(source?.landing, 200),
     device: ['mobile', 'tablet', 'desktop'].includes(String(source?.device)) ? String(source?.device) : null,
   }
-  const { error } = await supabaseAdmin()
-    .from('quiz_sessions')
-    .upsert(row, { onConflict: 'id', ignoreDuplicates: !source })
+  if (source && userAgent) row.user_agent = userAgent.slice(0, 300)
+  const upsert = () => supabaseAdmin().from('quiz_sessions').upsert(row, { onConflict: 'id', ignoreDuplicates: !source })
+  let { error } = await upsert()
+  // Coluna user_agent ainda não criada no banco: grava sem ela.
+  if (error?.code === '42703' || error?.code === 'PGRST204') {
+    delete row.user_agent
+    ;({ error } = await upsert())
+  }
   if (error) throw error
 }
 
@@ -57,11 +67,15 @@ async function trackEvent(request: Request) {
     throw new HttpError(400, 'Evento inválido.')
   }
   const step = Number.isInteger(b.step) && Number(b.step) >= 1 && Number(b.step) <= 30 ? Number(b.step) : null
+  const userAgent = request.headers.get('user-agent')
+  if (userAgent && BOT_UA.test(userAgent)) return json({ ok: true, ignored: 'bot' })
 
-  await ensureSession(sessionId, type === 'quiz_started' ? (b.source as Record<string, unknown>) ?? {} : undefined)
+  await ensureSession(sessionId, SESSION_START.has(type) ? (b.source as Record<string, unknown>) ?? {} : undefined, userAgent)
   const { error } = await supabaseAdmin()
     .from('quiz_events')
     .insert({ session_id: sessionId, type, step, question_id: questionId, answer, plan })
+  // 23514 = tipo de evento novo ainda não liberado no banco: ignora sem quebrar o quiz.
+  if (error?.code === '23514') return json({ ok: true, ignored: 'tipo ainda não liberado' })
   if (error) throw error
   return json({ ok: true }, 201)
 }

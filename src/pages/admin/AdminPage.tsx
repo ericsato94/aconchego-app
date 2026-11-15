@@ -116,10 +116,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const f = data?.funnel
   const funnel = f
     ? [
+        ...(f.landing ? [{ label: 'Abriram a página', value: f.landing }] : []),
         { label: 'Iniciaram o quiz', value: f.started },
         { label: 'Concluíram o quiz', value: f.completed },
         { label: 'Cadastraram', value: f.leads },
         { label: 'Chegaram nas vendas', value: f.sales },
+        ...(f.engaged !== undefined ? [{ label: 'Viram os planos', value: f.engaged }] : []),
         { label: 'Iniciaram checkout', value: f.checkout },
         { label: 'Compraram', value: f.purchases },
       ]
