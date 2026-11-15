@@ -415,3 +415,71 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ---------- Leads ---------- */
+.admin__leads {
+  grid-column: 1 / -1;
+}
+
+.admin__leads-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.admin__leads-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.admin__leads-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.admin__leads-table th,
+.admin__leads-table td {
+  text-align: left;
+}
+
+.admin__leads-table td {
+  vertical-align: top;
+  font-size: var(--fs-sm);
+  min-width: 110px;
+}
+
+.admin__leads-noconsent {
+  color: var(--c-danger);
+  font-weight: 600;
+}
+
+.admin__stage {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--c-primary-softer);
+  color: var(--c-primary-strong);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin__stage--offer_engaged,
+.admin__stage--checkout_started {
+  background: var(--c-warning-soft);
+  color: #8a5a00;
+}
+
+.admin__stage--purchase {
+  background: #eaf7ec;
+  color: #2e6b36;
+}

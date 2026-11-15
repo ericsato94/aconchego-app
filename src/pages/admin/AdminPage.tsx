@@ -3,6 +3,7 @@ import logo from '../../assets/logo.webp'
 import { Icon } from '../../components/Icon'
 import { QUESTIONS } from '../../quiz/config'
 import { DailyChart } from './DailyChart'
+import { LeadsCard } from './LeadsCard'
 import { adminApi, fmtInt, fmtMoney, fmtPct, pct, Unauthorized, type Metrics } from './metrics'
 import './admin.css'
 
@@ -296,6 +297,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               <p className="muted">Ainda sem visitas no período.</p>
             )}
           </section>
+
+          <LeadsCard days={days} reloadKey={reloadKey} onLogout={onLogout} />
 
           <section className="admin-card admin__answers">
             <h2 className="admin-card__title">Respostas por pergunta</h2>

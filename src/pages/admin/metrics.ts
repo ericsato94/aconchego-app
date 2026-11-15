@@ -21,6 +21,24 @@ export interface Metrics {
   daily: Array<{ day: string; started: number; completed: number; leads: number; checkout: number; purchases: number }>
 }
 
+export type LeadStage = 'lead_submitted' | 'result_viewed' | 'sales_viewed' | 'offer_engaged' | 'checkout_started' | 'purchase'
+
+export interface Lead {
+  id: string
+  name: string
+  email: string | null
+  whatsapp: string | null
+  /** Aceitou receber contato (LGPD): só esses podem ser chamados. */
+  consent: boolean
+  createdAt: string
+  identity: string | null
+  answers: Record<string, string>
+  source: string
+  campaign: string | null
+  stage: LeadStage
+  plan: string | null
+}
+
 export class Unauthorized extends Error {}
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
@@ -41,6 +59,7 @@ export const adminApi = {
     }),
   logout: () => call('/api/admin/logout', { method: 'POST' }),
   metrics: (days: number) => call<Metrics>(`/api/admin/metrics?days=${days}`),
+  leads: (days: number) => call<{ leads: Lead[] }>(`/api/admin/leads?days=${days}`).then((r) => r.leads),
 }
 
 export const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0)
