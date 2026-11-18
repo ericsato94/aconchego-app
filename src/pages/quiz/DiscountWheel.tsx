@@ -15,8 +15,8 @@ const TURNS = 6
 
 type Phase = 'ready' | 'spinning' | 'won' | 'coupon'
 
-/** Fatias da metade de baixo têm o texto girado 180° para não ficar de cabeça para baixo. */
-const upright = (i: number) => { const a = (i * SLICE) % 360; return a <= 90 || a >= 270 }
+/** Texto de cada fatia na vertical, ao longo do raio (do centro para a borda), a esta distância do centro. */
+const LABEL_R = 88
 
 /** Fatia em SVG: centro (150,150), raio 140, ângulos em graus a partir do topo, no sentido horário. */
 function slicePath(i: number) {
@@ -101,9 +101,9 @@ export function DiscountWheel({ onClose }: { onClose: (expiresAt: number | null)
                     <path d={slicePath(i)} fill={COLORS[i % COLORS.length]} stroke="#FFF6D6" strokeWidth="3" />
                     <text
                       x="150"
-                      y={upright(i) ? 62 : 250}
+                      y={150 - LABEL_R}
                       dominantBaseline="middle"
-                      transform={`rotate(${i * SLICE + (upright(i) ? 0 : 180)} 150 150)`}
+                      transform={`rotate(${i * SLICE} 150 150) rotate(-90 150 ${150 - LABEL_R})`}
                       textAnchor="middle"
                       className={i === 0 ? 'wheel__label wheel__label--best' : 'wheel__label'}
                     >
