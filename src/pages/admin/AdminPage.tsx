@@ -4,10 +4,17 @@ import { Icon } from '../../components/Icon'
 import { QUESTIONS } from '../../quiz/config'
 import { DailyChart } from './DailyChart'
 import { LeadsCard } from './LeadsCard'
-import { adminApi, fmtInt, fmtMoney, fmtPct, pct, Unauthorized, type Metrics } from './metrics'
+import { adminApi, addDays, fmtInt, fmtMoney, fmtPct, pct, presetRange, rangeLabel, todaySP, Unauthorized, type Metrics, type Preset, type Range } from './metrics'
 import './admin.css'
 
-const PERIODS = [7, 30, 90] as const
+const PRESETS: Array<{ id: Preset; label: string }> = [
+  { id: 'hoje', label: 'Hoje' },
+  { id: 'ontem', label: 'Ontem' },
+  { id: 7, label: '7 dias' },
+  { id: 30, label: '30 dias' },
+  { id: 90, label: '90 dias' },
+  { id: 'datas', label: 'Escolher datas' },
+]
 const SERIES = [
   { key: 'started', label: 'Iniciaram' },
   { key: 'completed', label: 'Concluíram' },
@@ -83,7 +90,11 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [days, setDays] = useState<(typeof PERIODS)[number]>(30)
+  const [today] = useState(todaySP)
+  const [preset, setPreset] = useState<Preset>(30)
+  const [custom, setCustom] = useState<Range>(() => ({ from: addDays(today, -1), to: addDays(today, -1) }))
+  const range = preset === 'datas' ? custom : presetRange(preset, today)
+  const { from, to } = range
   const [series, setSeries] = useState<(typeof SERIES)[number]['key']>('started')
   const [asTable, setAsTable] = useState(false)
   const [data, setData] = useState<Metrics | null>(null)
@@ -93,7 +104,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     let alive = true
     adminApi
-      .metrics(days)
+      .metrics({ from, to })
       .then((m) => {
         if (!alive) return
         setData(m)
@@ -107,7 +118,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return () => {
       alive = false
     }
-  }, [days, reloadKey, onLogout])
+  }, [from, to, reloadKey, onLogout])
 
   const logout = async () => {
     await adminApi.logout().catch(() => undefined)
@@ -137,13 +148,38 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <h1 className="admin__title">Painel do quiz</h1>
         </div>
         <div className="admin__filters">
-          <div className="admin__seg" role="radiogroup" aria-label="Período">
-            {PERIODS.map((p) => (
-              <button key={p} role="radio" aria-checked={days === p} className="chip" onClick={() => setDays(p)}>
-                {p} dias
+          <div className="admin__seg admin__seg--wrap" role="radiogroup" aria-label="Período">
+            {PRESETS.map((p) => (
+              <button key={p.id} role="radio" aria-checked={preset === p.id} className="chip" onClick={() => setPreset(p.id)}>
+                {p.label}
               </button>
             ))}
           </div>
+          {preset === 'datas' && (
+            <div className="admin__dates">
+              <label>
+                De
+                <input
+                  type="date"
+                  className="input"
+                  value={custom.from}
+                  max={today}
+                  onChange={(e) => e.target.value && setCustom((c) => ({ from: e.target.value, to: c.to < e.target.value ? e.target.value : c.to }))}
+                />
+              </label>
+              <label>
+                Até
+                <input
+                  type="date"
+                  className="input"
+                  value={custom.to}
+                  min={custom.from}
+                  max={today}
+                  onChange={(e) => e.target.value && setCustom((c) => ({ from: c.from > e.target.value ? e.target.value : c.from, to: e.target.value }))}
+                />
+              </label>
+            </div>
+          )}
           <button className="btn btn--ghost btn--sm" onClick={() => setReloadKey((k) => k + 1)} aria-label="Atualizar">
             <Icon name="refresh" size={18} />
           </button>
@@ -198,7 +234,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <div className="admin-card__head">
               <div>
                 <h2 className="admin-card__title">{seriesLabel} por dia</h2>
-                <p className="admin-card__sub">Últimos {days} dias</p>
+                <p className="admin-card__sub">{rangeLabel(range)}</p>
               </div>
               <button className="btn btn--ghost btn--sm" onClick={() => setAsTable((v) => !v)}>
                 {asTable ? 'Ver gráfico' : 'Ver tabela'}
@@ -298,7 +334,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             )}
           </section>
 
-          <LeadsCard days={days} reloadKey={reloadKey} onLogout={onLogout} />
+          <LeadsCard range={range} reloadKey={reloadKey} onLogout={onLogout} />
 
           <section className="admin-card admin__answers">
             <h2 className="admin-card__title">Respostas por pergunta</h2>

@@ -60,8 +60,25 @@
 
 .admin__filters {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
+}
+
+/* Atalhos de período: quebram em linhas no celular, sem a margem dos filtros do gráfico. */
+.admin__filters .admin__seg--wrap {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .admin__filters {
+    width: 100%;
+  }
+
+  .admin__filters .admin__seg--wrap,
+  .admin__dates {
+    flex-basis: 100%;
+  }
 }
 
 .admin__seg {
@@ -482,4 +499,26 @@
 .admin__stage--purchase {
   background: #eaf7ec;
   color: #2e6b36;
+}
+
+/* Período personalizado: dois campos de data ao lado dos atalhos. */
+.admin__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.admin__dates label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.admin__dates .input {
+  width: auto;
+  min-height: 40px;
+  padding: 6px 10px;
 }

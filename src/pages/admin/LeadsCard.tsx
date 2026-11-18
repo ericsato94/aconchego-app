@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../../components/Icon'
 import { QUESTIONS } from '../../quiz/config'
-import { adminApi, Unauthorized, type Lead, type LeadStage } from './metrics'
+import { adminApi, Unauthorized, type Lead, type LeadStage, type Range } from './metrics'
 
 const STAGE_LABEL: Record<LeadStage, string> = {
   lead_submitted: 'Cadastrou',
@@ -59,15 +59,16 @@ function exportCsv(leads: Lead[]) {
 }
 
 /** Quem deixou nome e contato no quiz, com origem, até onde chegou e atalho para o WhatsApp. */
-export function LeadsCard({ days, reloadKey, onLogout }: { days: number; reloadKey: number; onLogout: () => void }) {
+export function LeadsCard({ range, reloadKey, onLogout }: { range: Range; reloadKey: number; onLogout: () => void }) {
   const [leads, setLeads] = useState<Lead[] | null>(null)
   const [error, setError] = useState('')
   const [onlyHot, setOnlyHot] = useState(false)
+  const { from, to } = range
 
   useEffect(() => {
     let alive = true
     adminApi
-      .leads(days)
+      .leads({ from, to })
       .then((list) => alive && (setLeads(list), setError('')))
       .catch((err) => {
         if (!alive) return
@@ -77,7 +78,7 @@ export function LeadsCard({ days, reloadKey, onLogout }: { days: number; reloadK
     return () => {
       alive = false
     }
-  }, [days, reloadKey, onLogout])
+  }, [from, to, reloadKey, onLogout])
 
   // "Quentes": viram a oferta (ou mais) e não compraram — os melhores para chamar.
   const shown = (leads ?? []).filter((l) => !onlyHot || (l.stage !== 'purchase' && ['sales_viewed', 'offer_engaged', 'checkout_started'].includes(l.stage)))

@@ -7,7 +7,7 @@ import { HttpError, supabaseAdmin } from '../_lib/supabaseAdmin.js'
  *   POST /api/admin/login    { username, password } → cookie de sessão (HttpOnly, assinado)
  *   POST /api/admin/logout
  *   GET  /api/admin/session  → { authenticated }
- *   GET  /api/admin/metrics?days=7|30|90
+ *   GET  /api/admin/metrics?from=AAAA-MM-DD&to=AAAA-MM-DD (ou ?days=7|30|90)
  * Credenciais nas variáveis ADMIN_USERNAME, ADMIN_PASSWORD e ADMIN_SESSION_SECRET.
  */
 const COOKIE = 'aconchego_admin'
@@ -60,29 +60,68 @@ async function login(request: Request) {
   return response
 }
 
+/** Hoje no fuso de São Paulo, no formato AAAA-MM-DD. */
+const todaySP = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date())
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+const dayDiff = (from: string, to: string) => Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000)
+
+/**
+ * Período pedido pelo painel: `from` e `to` (AAAA-MM-DD, dias de São Paulo, inclusive) ou,
+ * no formato antigo, `days` (os últimos N dias até hoje).
+ */
+function period(request: Request) {
+  const q = new URL(request.url).searchParams
+  const today = todaySP()
+  if (q.has('from') || q.has('to')) {
+    const from = q.get('from') ?? ''
+    const to = q.get('to') ?? ''
+    if (!DATE.test(from) || !DATE.test(to) || Number.isNaN(Date.parse(from)) || Number.isNaN(Date.parse(to))) {
+      throw new HttpError(400, 'Datas inválidas.')
+    }
+    if (from > to) throw new HttpError(400, 'A data inicial é depois da final.')
+    if (dayDiff(from, to) > 366) throw new HttpError(400, 'Escolha um período de até 1 ano.')
+    return { from, to, today }
+  }
+  const days = Number(q.get('days') ?? 30)
+  if (!ALLOWED_DAYS.has(days)) throw new HttpError(400, 'Período inválido.')
+  const from = new Date(Date.parse(today) - (days - 1) * 86_400_000).toISOString().slice(0, 10)
+  return { from, to: today, today }
+}
+
+/** Início do dia (00:00 em São Paulo) como data/hora UTC. */
+const startOfDaySP = (day: string) => new Date(`${day}T00:00:00-03:00`)
+
 async function metrics(request: Request) {
   if (!isAuthenticated(request)) throw new HttpError(401, 'Entre para ver o painel.')
-  const days = Number(new URL(request.url).searchParams.get('days') ?? 30)
-  if (!ALLOWED_DAYS.has(days)) throw new HttpError(400, 'Período inválido.')
-  const { data, error } = await supabaseAdmin().rpc('quiz_metrics', { p_days: days })
-  if (error) throw error
-  return json(data)
+  const { from, to, today } = period(request)
+  const admin = supabaseAdmin()
+  const { data, error } = await admin.rpc('quiz_metrics_range', { p_from: from, p_to: to })
+  if (!error) return json(data)
+  // Banco ainda sem a função por data: períodos que terminam hoje ainda funcionam pela antiga.
+  if (error.code === 'PGRST202' && to === today) {
+    const old = await admin.rpc('quiz_metrics', { p_days: dayDiff(from, to) + 1 })
+    if (old.error) throw old.error
+    return json(old.data)
+  }
+  if (error.code === 'PGRST202') throw new HttpError(503, 'Para ver dias passados, rode a atualização do banco (metricas_por_data).')
+  throw error
 }
 
 /** Ordem das etapas depois do cadastro: mostra até onde cada lead chegou. */
 const STAGES = ['lead_submitted', 'result_viewed', 'sales_viewed', 'offer_engaged', 'checkout_started', 'purchase'] as const
 
-/** GET /api/admin/leads?days=N — quem deixou contato no quiz, com origem e até onde chegou. */
+/** GET /api/admin/leads?from=…&to=… — quem deixou contato no quiz, com origem e até onde chegou. */
 async function leads(request: Request) {
   if (!isAuthenticated(request)) throw new HttpError(401, 'Entre para ver o painel.')
-  const days = Number(new URL(request.url).searchParams.get('days') ?? 30)
-  if (!ALLOWED_DAYS.has(days)) throw new HttpError(400, 'Período inválido.')
-  const since = new Date(Date.now() - days * 86_400_000).toISOString()
+  const { from, to } = period(request)
+  const since = startOfDaySP(from).toISOString()
+  const until = new Date(startOfDaySP(to).getTime() + 86_400_000).toISOString()
   const admin = supabaseAdmin()
   const { data: rows, error } = await admin
     .from('quiz_leads')
     .select('session_id, name, email, whatsapp, contact_consent, answers, identity, created_at')
     .gte('created_at', since)
+    .lt('created_at', until)
     .order('created_at', { ascending: false })
     .limit(500)
   if (error) throw error
