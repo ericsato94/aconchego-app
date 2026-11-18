@@ -38,6 +38,31 @@ export interface Plan {
   checkoutUrl: string
 }
 
+/** Cupom da roleta (só no 1º mês do plano indicado em `plan`). */
+export interface Coupon {
+  code: string
+  percent: number
+  plan: string
+  minutes: number
+  title: string
+  subtitle: string
+  spin: string
+  /** A primeira fatia é a que sempre sai (o desconto do cupom). */
+  slices: string[]
+  wonTitle: string
+  wonText: string
+  redeem: string
+  couponLabel: string
+  copy: string
+  copied: string
+  howTo: string
+  hurry: string
+  use: string
+  banner: string
+  firstMonth: string
+  after: string
+}
+
 interface QuizConfig {
   intro: { eyebrow: string; title: string; subtitle: string; button: string; note: string }
   questions: QuizQuestion[]
@@ -76,6 +101,7 @@ interface QuizConfig {
     checkoutButton: string
     freeAlternative: string
     guarantee: string
+    coupon: Coupon
     faq: Array<{ q: string; a: string }>
   }
 }

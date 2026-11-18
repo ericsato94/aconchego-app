@@ -367,6 +367,35 @@
     "checkoutButton": "Garantir meu acesso",
     "freeAlternative": "Prefiro começar grátis com 3 histórias",
     "guarantee": "Garantia de 7 dias: se não for para você, devolvemos 100% do valor.",
+    "coupon": {
+      "code": "ACONCHEGO70",
+      "percent": 70,
+      "plan": "mensal",
+      "minutes": 10,
+      "title": "Roleta de desconto Black Friday",
+      "subtitle": "Todo mundo ganha um presente. Gire para revelar o seu!",
+      "spin": "Girar a roleta",
+      "slices": [
+        "70% OFF",
+        "10% OFF",
+        "30% OFF",
+        "20% OFF",
+        "50% OFF",
+        "40% OFF"
+      ],
+      "wonTitle": "Você ganhou 70% OFF!",
+      "wonText": "No 1º mês do plano Mensal.",
+      "redeem": "Resgatar meu cupom",
+      "couponLabel": "Seu cupom",
+      "copy": "Copiar",
+      "copied": "Copiado!",
+      "howTo": "Cole o cupom no campo \"Cupom de desconto\" na hora do pagamento.",
+      "hurry": "Corra antes que o cupom expire:",
+      "use": "Usar meu cupom",
+      "banner": "ACONCHEGO70: 70% OFF no 1º mês do Mensal",
+      "firstMonth": "no 1º mês",
+      "after": "depois R$ 29,90 por mês"
+    },
     "faq": [
       {
         "q": "Preciso gravar muita coisa?",

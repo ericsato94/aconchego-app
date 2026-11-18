@@ -9,6 +9,9 @@ import { quizState } from '../../quiz/state'
 import { track, trafficSource } from '../../quiz/track'
 import { QuizLayout } from './QuizLayout'
 import { pixel } from '../../quiz/pixel'
+import { copyCode, coupon, discounted } from '../../quiz/coupon'
+import { mmss, useCountdown } from '../../quiz/useCountdown'
+import { DiscountWheel } from './DiscountWheel'
 
 /** Página de vendas, personalizada pelas respostas do quiz. */
 export default function SalesPage() {
@@ -21,6 +24,17 @@ export default function SalesPage() {
   const plansRef = useRef<HTMLDivElement>(null)
   const [heroVisible, setHeroVisible] = useState(true)
   const [plansVisible, setPlansVisible] = useState(false)
+  // Roleta de desconto: abre uma vez ao chegar na oferta; o cupom resgatado vale por alguns minutos.
+  const C = coupon.config
+  const [wheelOpen, setWheelOpen] = useState(() => coupon.shouldShow())
+  const [couponUntil, setCouponUntil] = useState(() => coupon.activeUntil())
+  const couponLeft = Math.min(useCountdown(couponUntil), C.minutes * 60_000)
+  const couponOn = couponUntil !== null && couponLeft > 0
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (wheelOpen) coupon.markShown()
+  }, [wheelOpen])
 
   // Barra fixa de compra: aparece depois do topo e some quando os planos estão na tela.
   // Chegar nos planos também conta como evento (mostra quantos veem o preço).
@@ -55,10 +69,22 @@ export default function SalesPage() {
 
   const name = firstName(state.name ?? '')
   const plan = O.plans.find((p) => p.id === planId) ?? O.plans[0]
+  const deal = (p: typeof plan) => couponOn && p.id === C.plan
+  const priceLabel = deal(plan) ? `${discounted(plan.value)} ${C.firstMonth}` : plan.price
+
+  const copyCoupon = async () => {
+    if (await copyCode()) {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2200)
+    }
+  }
 
   const checkout = () => {
     void track({ sessionId: state.sessionId, type: 'checkout_started', plan: plan.id })
-    pixel.initiateCheckout({ id: plan.id, name: plan.name, value: plan.value })
+    const value = deal(plan) ? Math.round(plan.value * (100 - C.percent)) / 100 : plan.value
+    pixel.initiateCheckout({ id: plan.id, name: plan.name, value })
+    // Com o cupom ativo, o código já vai copiado para colar no pagamento.
+    if (deal(plan)) void copyCode()
     if (plan.checkoutUrl) {
       // A sessão do quiz vai em "sck" (a Cakto devolve no aviso de compra) e a origem do anúncio
       // segue junto nos parâmetros UTM, para aparecer também nos relatórios da plataforma.
@@ -76,6 +102,17 @@ export default function SalesPage() {
 
   return (
     <QuizLayout wide back="/quiz/resultado">
+      {wheelOpen && (
+        <DiscountWheel
+          onClose={(until) => {
+            setWheelOpen(false)
+            if (until) {
+              setCouponUntil(until)
+              setPlanId(C.plan)
+            }
+          }}
+        />
+      )}
       <article className="sales">
         {/* Quem chega aqui já pediu o plano: a página abre na escolha do plano, sem rolar. */}
         <section className="sales__top" ref={heroRef}>
@@ -85,6 +122,19 @@ export default function SalesPage() {
         </section>
 
         <section className="sales__offer" id="oferta">
+          {couponOn && (
+            <div className="sales__coupon" role="status">
+              <span className="sales__coupon-text">
+                🎁 {C.banner}
+                <small>
+                  {C.hurry} <strong>{mmss(couponLeft)}</strong>
+                </small>
+              </span>
+              <button className="sales__coupon-copy" onClick={copyCoupon}>
+                {copied ? C.copied : C.copy}
+              </button>
+            </div>
+          )}
           <div className="sales__plans" role="radiogroup" aria-label="Escolha o plano" ref={plansRef}>
             <div className="sales__plans-grid">
             {O.plans.map((p) => (
@@ -97,10 +147,21 @@ export default function SalesPage() {
               >
                 {p.id === result.recommendedPlan && <span className="sales__ribbon">{O.recommendedLabel}</span>}
                 <span className="sales__plan-name">{p.name}</span>
-                <span className="sales__price">
-                  <strong>{p.price}</strong> {p.period}
-                </span>
-                {p.note && <span className="sales__note">{p.note}</span>}
+                {deal(p) ? (
+                  <>
+                    <span className="sales__price">
+                      <s className="sales__old">{p.price}</s> <strong>{discounted(p.value)}</strong> {C.firstMonth}
+                    </span>
+                    <span className="sales__note">{C.after}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="sales__price">
+                      <strong>{p.price}</strong> {p.period}
+                    </span>
+                    {p.note && <span className="sales__note">{p.note}</span>}
+                  </>
+                )}
                 <ul role="list">
                   {p.features.map((f) => (
                     <li key={f}>
@@ -112,7 +173,7 @@ export default function SalesPage() {
             ))}
             </div>
             <button className="btn btn--sun btn--block sales__checkout" onClick={checkout}>
-              {O.checkoutButton} · {plan.price}
+              {O.checkoutButton} · {priceLabel}
             </button>
             {O.guarantee && (
               <p className="sales__guarantee">

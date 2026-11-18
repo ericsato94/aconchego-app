@@ -62,45 +62,6 @@
   color: var(--c-brown);
 }
 
-/* Confete por cima de tudo, sem bloquear os toques. */
-.confetti {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--z-modal) + 1);
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.confetti i {
-  position: absolute;
-  top: -20px;
-  width: 9px;
-  height: 14px;
-  border-radius: 2px;
-  opacity: 0;
-  animation: confetti-fall 3s cubic-bezier(0.25, 0.6, 0.45, 1) forwards;
-}
-
-.confetti i.is-round {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-@keyframes confetti-fall {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0);
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--drift), 105vh) rotate(var(--spin));
-  }
-}
-
 @keyframes paid-bounce {
   0% {
     transform: scale(0.6);
@@ -116,10 +77,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .confetti {
-    display: none;
-  }
-
   .paid-welcome__art {
     animation: none;
   }

@@ -1157,3 +1157,53 @@
     margin-inline: auto;
   }
 }
+
+/* Cupom da roleta ativo: faixa acima dos planos + preço riscado no plano com desconto. */
+.sales__coupon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  padding: 12px 14px;
+  border: 2px dashed var(--c-sun);
+  border-radius: 16px;
+  background: #fff8db;
+  color: var(--c-navy);
+}
+
+.sales__coupon-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sales__coupon-text small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c0392b;
+}
+
+.sales__coupon-text strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.sales__coupon-copy {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-navy);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+}
+
+.sales__old {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
